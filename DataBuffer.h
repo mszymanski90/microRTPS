@@ -1,6 +1,6 @@
 /*
 *
-* sources/inc/DataBuffer.h - Data Buffer
+* DataBuffer.h - Data Buffer
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -24,6 +24,9 @@
 #define DATABUFFER_H_
 
 #include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
 
 #define DB_COUNT 4
 #define TPBUF_LENGTH 4
@@ -34,7 +37,7 @@ typedef struct sTopicBuffer
 {
 	unsigned portBASE_TYPE topicID;
 	tMsg* messages;
-	unsigned portBASE_TYPE msgPendingReads;
+	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
 	unsigned portBASE_TYPE subscribersCount;
 
 	xSemaphoreHandle sem;
@@ -44,7 +47,7 @@ typedef TopicBuffer* TopicBufferHandle;
 
 TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msg_length);
 portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle);
-void ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
+tMsg ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
 void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
 
 typedef struct sDataBuffer
@@ -55,6 +58,6 @@ typedef struct sDataBuffer
 void DBInit(void);
 tMsg DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg);
 tMsg DBRead(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID);
-void CreateTopicBuffer(DataBuffer* DBuffer, unsigned portBASE_TYPE msg_length);
+void NewTopic(DataBuffer* DBuffer, unsigned portBASE_TYPE msg_length);
 
 #endif /* DATABUFFER_H_ */

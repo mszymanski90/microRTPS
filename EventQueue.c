@@ -27,20 +27,29 @@
  */
 void initEventQueue(EventQueue eq, unsigned portBASE_TYPE QueueLength)
 {
-	eq = xQueueCreate(sizeof());
+	eq = xQueueCreate(sizeof(Event));
 }
 
 /*
  * \brief Adds new event to end of queue.
  */
-void newEvent(EventQueue EQueue, Event event);
+void newEvent(EventQueue EQueue, Event event)
+{
+
+}
 
 /*
  * \brief Returns adress of event on top of the queue.
  */
-Event* topEvent(EventQueue EQueue);
+Event* topEvent(EventQueue EQueue)
+{
+
+}
 
 /*
  * \brief Erases event after service.
  */
-void topEventServiced(EventQueue EQueue);
+void topEventServiced(EventQueue EQueue)
+{
+
+}

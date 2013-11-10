@@ -25,7 +25,7 @@
 
 typedef struct sEvent
 {
-	uint32_t type;
+	long type;
 } Event;
 
 #endif /* EVENT_H_ */

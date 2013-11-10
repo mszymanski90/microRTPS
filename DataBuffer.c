@@ -1,6 +1,6 @@
 /*
 *
-* sources/src/DataBuffer.c - Data Buffer
+* DataBuffer.c - Data Buffer
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -26,8 +26,8 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 {
 	TopicBufferHandle pom;
 
-	//pom = rt_malloc(sizeof(TopicBuffer));
-	//pom->messages = rt_malloc(TPBUF_LENGTH * msg_length);
+	pom = rt_malloc(sizeof(TopicBuffer));
+	pom->messages = rt_malloc(TPBUF_LENGTH * msg_length);
 	pom->topicID = topicID;
 	pom->sem = xCreateSemaphoreCounting(TPBUF_LENGTH, 0);
 	pom->subscribersCount = 0;
@@ -66,7 +66,7 @@ void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 
 void DBInit(void)
 {
-	sem = xSemaphoreCreateCounting();
+	//sem = xSemaphoreCreateCounting();
 }
 
 /*
@@ -83,10 +83,5 @@ tMsg DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg)
 tMsg DBRead(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID)
 {
 
-}
-
-TopicBuffer CreateMsgBuffer(DataBuffer* DBuffer, unsigned portBASE_TYPE msg_length)
-{
-	return malloc(TPBUF_LENGTH * msg_length);
 }
 

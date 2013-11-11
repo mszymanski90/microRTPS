@@ -38,7 +38,7 @@ typedef struct sMsgQueueElem
 
 typedef struct sSubscribtMatrixElem
 {
-	unsigned portBASE_TYPE sem_in_msg;
+	unsigned portBASE_TYPE ;
 	unsigned portBASE_TYPE last_read;
 } tSubscribtMatrixElem;
 

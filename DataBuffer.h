@@ -28,6 +28,8 @@
 #include "queue.h"
 #include "semphr.h"
 
+#include "SubscriptionsMatrix.h"
+
 #define DB_COUNT 4
 #define TPBUF_LENGTH 4
 
@@ -39,24 +41,42 @@ typedef struct sTopicBuffer
 	tMsg* messages;
 	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
 	unsigned portBASE_TYPE subscribersCount;
+	unsigned portBASE_TYPE next_msg[TPBUF_LENGTH];
+	unsigned portBASE_TYPE last_write;
 
-	xSemaphoreHandle sem;
+	//
+	xSemaphoreHandle sem_space_left;
 } TopicBuffer;
 
 typedef TopicBuffer* TopicBufferHandle;
 
+/*
+ * \brief Creates TopicBuffer and returns a handle to it.
+ */
 TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msg_length);
+
 portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle);
-tMsg ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
+
+/*
+ * \brief Reads from Topic Buffer
+ *
+ * last_read_index- index of last read message in buffer,
+ */
+tMsg ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE* last_read_index);
+
+/*
+ * \brief Writes to Topic Buffer.
+ */
 void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
 
 typedef struct sDataBuffer
 {
-	TopicBuffer tb[DB_COUNT];
+	TopicBufferHandle tb[DB_COUNT];
+	tSubscribtMatrix sm;
 } DataBuffer;
 
-void DBInit(void);
-tMsg DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg);
+void DBInit(DataBuffer* DBuffer);
+void DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg);
 tMsg DBRead(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID);
 void NewTopic(DataBuffer* DBuffer, unsigned portBASE_TYPE msg_length);
 

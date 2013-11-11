@@ -1,6 +1,6 @@
 /*
 *
-* SubscribtionsMatrix.c - Subscriptions matrix
+* SubscribtionsMatrix.c - Subscribtions matrix
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -22,7 +22,7 @@
 
 #include "SubscribtionsMatrix.h"
 
-void CreateSubscriptMatrix(SubscriptMatrixHandle SMHandle)
+void InitSubscriptMatrix(SubscribtMatrixHandle SMHandle)
 {
 	int i;
 	int j;
@@ -31,12 +31,13 @@ void CreateSubscriptMatrix(SubscriptMatrixHandle SMHandle)
 	{
 		for(j=0; j<MAX_APPS; j++)
 		{
-			xSemaphoreCreateCounting(SMHandle->matrix[i][j].sem_in_msg);
+			SMHandle->matrix[i][j].sem_in_msg = xSemaphoreCreateCounting(MAX_TOPICS, 0);
+			SMHandle->matrix[i][j].last_read = 0;
 		}
 	}
 }
 
-void DeleteSubscriptMatrix(SubscriptMatrixHandle SMHandle)
+void DeleteSubscriptMatrix(SubscribtMatrixHandle SMHandle)
 {
 	int i;
 	int j;
@@ -50,7 +51,16 @@ void DeleteSubscriptMatrix(SubscriptMatrixHandle SMHandle)
 	}
 }
 
-void NewMsgForApp(SubscriptMatrixHandle SMHandle, portBASE_TYPE topicID, portBASE_TYPE AppID)
+void NewMsgInTopic(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID)
 {
-	if(AppID <= MAX_APPS) xSemaphoreGive(SMHandle->matrix[topicID][AppID].sem_in_msg);
+	int AppID;
+	for(AppID=0; AppID<MAX_APPS; AppID++)
+	{
+		xSemaphoreGive(SMHandle->matrix[topicID][AppID].sem_in_msg);
+	}
+}
+
+void MsgReadByApp(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID, portBASE_TYPE AppID, portBASE_TYPE last_rd)
+{
+	if(AppID <= MAX_APPS) SMHandle->matrix[topicID][AppID].last_read = last_rd;
 }

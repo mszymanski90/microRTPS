@@ -25,32 +25,45 @@
 TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msg_length)
 {
 	TopicBufferHandle pom;
+	portBASE_TYPE i;
 
 	pom = pvPortMalloc(sizeof(TopicBuffer));
 	pom->messages = pvPortMalloc(TPBUF_LENGTH * msg_length);
 	pom->topicID = topicID;
-	pom->sem = xCreateSemaphoreCounting(TPBUF_LENGTH, 0);
+	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
 	pom->subscribersCount = 0;
+	pom->last_write=0;
+
+	for(i=0; i<TPBUF_LENGTH; i++)
+	{
+		pom->next_msg[i]=0;
+	}
 
 	return pom;
 }
 
 portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
 {
+	vSemaphoreDelete(TBHandle->sem_space_left);
+	vPortFree(TBHandle->messages);
+	vPortFree(TBHandle);
 
+	return 0;
 }
 
-tMsg ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
+tMsg ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE* last_read_index)
 {
-	if(TBHandle->msgPendingReads[msg_index]>0) TBHandle->msgPendingReads[msg_index]--;
+	if(TBHandle->msgPendingReads[*last_read_index]>0) TBHandle->msgPendingReads[*last_read_index]--;
+	(*last_read_index)=TBHandle->next_msg[*last_read_index];
+	return TBHandle->messages[*last_read_index];
 }
 
 void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 {
 	int i;
 
-	// block if no space in buffer avaible
-	xSemaphoreTake(TBHandle->sem, (portTickType) 0);
+	// block if no space in buffer
+	xSemaphoreTake(TBHandle->sem_space_left, (portTickType) 0);
 
 	for(i=0; i<TPBUF_LENGTH; i++)
 	{
@@ -59,22 +72,33 @@ void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 			// all apps subscribing this topic, read this message
 			TBHandle->messages[i] = msg;
 			TBHandle->msgPendingReads[i] = TBHandle->subscribersCount;
+			TBHandle->next_msg[TBHandle->last_write] = i;
+			TBHandle->last_write = i;
+			TBHandle->next_msg[TBHandle->last_write] = 0;
 			break;
 		}
 	}
 }
 
-void DBInit(void)
+void DBInit(DataBuffer* DBuffer)
 {
-	//sem = xSemaphoreCreateCounting();
+	int i;
+
+	for(i=0; i<DB_COUNT; i++)
+	{
+		DBuffer->tb = 0;
+	}
+
+	InitSubscribtMatrix(&DBuffer->sm);
 }
 
 /*
  * \brief Writes to topic buffer.
  */
-tMsg DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg)
+void DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg)
 {
-
+	WriteTopicBuffer(DBuffer->tb[topicID], msg);
+	NewMsgInTopic(DBuffer->sm, topicID);
 }
 
 /*
@@ -82,6 +106,7 @@ tMsg DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg)
  */
 tMsg DBRead(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID)
 {
-
+	xSemaphoreTake(DBuffer->sm.matrix[]);
+	ReadTopicBuffer();
 }
 

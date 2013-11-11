@@ -43,7 +43,7 @@ void newEvent(EventQueue EQueue, Event event)
  */
 Event* topEvent(EventQueue EQueue)
 {
-
+	return NULL;
 }
 
 /*

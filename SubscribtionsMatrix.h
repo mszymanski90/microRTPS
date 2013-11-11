@@ -1,6 +1,6 @@
 /*
 *
-* sources/inc/SubscribtionsMatrix.h - Subscriptions matrix
+* SubscribtionsMatrix.h - Subscribtions matrix
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -20,28 +20,32 @@
 *
 */
 
-#ifndef SUBSCRIPTIONSMATRIX_H_
-#define SUBSCRIPTIONSMATRIX_H_
+#ifndef SUBSCRIBTIONSMATRIX_H_
+#define SUBSCRIBTIONSMATRIX_H_
 
 #include "FreeRTOS.h"
+#include "queue.h"
+#include "semphr.h"
 
 #define MAX_TOPICS 4
 #define MAX_APPS 2
 
-typedef struct sSubscriptMatrixElem
+typedef struct sSubscribtMatrixElem
 {
 	xSemaphoreHandle sem_in_msg;
-} tSubscriptMatrixElem;
+	portBASE_TYPE last_read;
+} tSubscribtMatrixElem;
 
-typedef struct sSubscriptMatrix
+typedef struct sSubscribtMatrix
 {
-	tSubscriptMatrixElem matrix[MAX_TOPICS][MAX_APPS];
-} tSubscriptMatrix;
+	tSubscribtMatrixElem matrix[MAX_TOPICS][MAX_APPS];
+} tSubscribtMatrix;
 
-typedef tSubscriptMatrix* SubscriptMatrixHandle;
+typedef tSubscribtMatrix* SubscribtMatrixHandle;
 
-void CreateSubscriptMatrix(SubscriptMatrixHandle SMHandle);
-void DeleteSubscriptMatrix(SubscriptMatrixHandle SMHandle);
-void NewMsgForApp(SubscriptMatrixHandle SMHandle, portBASE_TYPE topicID, portBASE_TYPE AppID);
+void InitSubscriptMatrix(SubscribtMatrixHandle SMHandle);
+void DeleteSubscriptMatrix(SubscribtMatrixHandle SMHandle);
+void NewMsgInTopic(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID);
+void MsgReadByApp(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID, portBASE_TYPE AppID, portBASE_TYPE last_rd);
 
-#endif /* SUBSCRIPTIONSMATRIX_H_ */
+#endif /* SUBSCRIBTIONSMATRIX_H_ */

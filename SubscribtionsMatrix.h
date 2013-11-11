@@ -34,11 +34,13 @@ typedef struct sSubscribtMatrixElem
 {
 	xSemaphoreHandle sem_in_msg;
 	portBASE_TYPE last_read;
+	unsigned portBASE_TYPE next_msg[TPBUF_LENGTH];
 } tSubscribtMatrixElem;
 
 typedef struct sSubscribtMatrix
 {
 	tSubscribtMatrixElem matrix[MAX_TOPICS][MAX_APPS];
+
 } tSubscribtMatrix;
 
 typedef tSubscribtMatrix* SubscribtMatrixHandle;

@@ -35,16 +35,20 @@
 
 typedef void* tMsg;
 
+/*
+ * \brief Buffer for messages.
+ *
+ * Topic Buffer provides an interface
+ * to reading and writing from message buffer.
+ */
 typedef struct sTopicBuffer
 {
 	unsigned portBASE_TYPE topicID;
 	tMsg* messages;
 	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
 	unsigned portBASE_TYPE subscribersCount;
-	unsigned portBASE_TYPE next_msg[TPBUF_LENGTH];
 	unsigned portBASE_TYPE last_write;
 
-	//
 	xSemaphoreHandle sem_space_left;
 } TopicBuffer;
 

@@ -46,6 +46,8 @@ typedef struct sTopicBuffer
 	tMsg* messages;
 	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
 	unsigned portBASE_TYPE subscribersCount;
+
+	//
 	unsigned portBASE_TYPE last_write;
 
 	xSemaphoreHandle sem_space_left;
@@ -65,7 +67,12 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle);
  *
  * last_read_index- index of last read message in buffer,
  */
-tMsg ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE* last_read_index);
+tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
+
+/*
+ * \brief Decrements msgPendingReads, Gives semaphore for writing.
+ */
+void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
 
 /*
  * \brief Writes to Topic Buffer.

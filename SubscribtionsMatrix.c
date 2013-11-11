@@ -35,6 +35,14 @@ void InitSubscriptMatrix(SubscribtMatrixHandle SMHandle)
 			SMHandle->matrix[i][j].last_read = 0;
 		}
 	}
+
+	for(i=0; i<(TPBUF_LENGTH*MAX_TOPICS); i++)
+	{
+		SMHandle->next_msg[i].topicID=0;
+		SMHandle->next_msg[i].index=0;
+		SMHandle->next_msg[i].next_tID=0;
+		SMHandle->next_msg[i].next_index=0;
+	}
 }
 
 void DeleteSubscriptMatrix(SubscribtMatrixHandle SMHandle)

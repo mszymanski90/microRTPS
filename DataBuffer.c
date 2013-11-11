@@ -34,11 +34,6 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom->subscribersCount = 0;
 	pom->last_write=0;
 
-	for(i=0; i<TPBUF_LENGTH; i++)
-	{
-		pom->next_msg[i]=0;
-	}
-
 	return pom;
 }
 
@@ -51,11 +46,16 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
 	return 0;
 }
 
-tMsg ReadTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE* last_read_index)
+tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
 {
-	if(TBHandle->msgPendingReads[*last_read_index]>0) TBHandle->msgPendingReads[*last_read_index]--;
-	(*last_read_index)=TBHandle->next_msg[*last_read_index];
-	return TBHandle->messages[*last_read_index];
+
+	return TBHandle->messages[msg_index];
+}
+
+void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
+{
+	if(TBHandle->msgPendingReads[msg_index]>0) TBHandle->msgPendingReads[msg_index]--;
+	if(TBHandle->msgPendingReads[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
 }
 
 void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)

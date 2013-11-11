@@ -29,17 +29,24 @@
 
 #include "microRTPS_config.h"
 
+typedef struct sMsgQueueElem
+{
+	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE index;
+	unsigned portBASE_TYPE next_tID;
+	unsigned portBASE_TYPE next_index;
+} MsgQueueElem;
+
 typedef struct sSubscribtMatrixElem
 {
 	xSemaphoreHandle sem_in_msg;
 	portBASE_TYPE last_read;
-	unsigned portBASE_TYPE next_msg[TPBUF_LENGTH];
 } tSubscribtMatrixElem;
 
 typedef struct sSubscribtMatrix
 {
 	tSubscribtMatrixElem matrix[MAX_TOPICS][MAX_APPS];
-
+	MsgQueueElem next_msg[TPBUF_LENGTH*MAX_TOPICS];
 } tSubscribtMatrix;
 
 typedef tSubscribtMatrix* SubscribtMatrixHandle;

@@ -33,20 +33,21 @@ typedef struct sMsgQueueElem
 {
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE index;
-	unsigned portBASE_TYPE next_tID;
-	unsigned portBASE_TYPE next_index;
+	unsigned portBASE_TYPE point_next;
 } MsgQueueElem;
 
 typedef struct sSubscribtMatrixElem
 {
-	xSemaphoreHandle sem_in_msg;
-	portBASE_TYPE last_read;
+	unsigned portBASE_TYPE sem_in_msg;
+	unsigned portBASE_TYPE last_read;
 } tSubscribtMatrixElem;
 
 typedef struct sSubscribtMatrix
 {
 	tSubscribtMatrixElem matrix[MAX_TOPICS][MAX_APPS];
+	xSemaphoreHandle app_semaphores[MAX_APPS];
 	MsgQueueElem next_msg[TPBUF_LENGTH*MAX_TOPICS];
+	unsigned portBASE_TYPE last_write;
 } tSubscribtMatrix;
 
 typedef tSubscribtMatrix* SubscribtMatrixHandle;

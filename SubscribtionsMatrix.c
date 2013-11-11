@@ -40,8 +40,7 @@ void InitSubscriptMatrix(SubscribtMatrixHandle SMHandle)
 	{
 		SMHandle->next_msg[i].topicID=0;
 		SMHandle->next_msg[i].index=0;
-		SMHandle->next_msg[i].next_tID=0;
-		SMHandle->next_msg[i].next_index=0;
+		SMHandle->next_msg[i].point_next=0;
 	}
 }
 
@@ -61,11 +60,9 @@ void DeleteSubscriptMatrix(SubscribtMatrixHandle SMHandle)
 
 void NewMsgInTopic(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID)
 {
-	int AppID;
-	for(AppID=0; AppID<MAX_APPS; AppID++)
-	{
-		xSemaphoreGive(SMHandle->matrix[topicID][AppID].sem_in_msg);
-	}
+	xSemaphoreGive(SMHandle->matrix[topicID][AppID].sem_in_msg);
+
+	// add messages to app queues
 }
 
 void MsgReadByApp(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID, portBASE_TYPE AppID, portBASE_TYPE last_rd)

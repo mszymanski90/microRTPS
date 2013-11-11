@@ -47,9 +47,6 @@ typedef struct sTopicBuffer
 	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
 	unsigned portBASE_TYPE subscribersCount;
 
-	//
-	unsigned portBASE_TYPE last_write;
-
 	xSemaphoreHandle sem_space_left;
 } TopicBuffer;
 

@@ -55,6 +55,8 @@ tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE ms
 void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
 {
 	if(TBHandle->msgPendingReads[msg_index]>0) TBHandle->msgPendingReads[msg_index]--;
+
+	// all subscribing apps have read this message; this slot is now avaible for writing
 	if(TBHandle->msgPendingReads[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
 }
 
@@ -72,9 +74,6 @@ void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 			// all apps subscribing this topic, read this message
 			TBHandle->messages[i] = msg;
 			TBHandle->msgPendingReads[i] = TBHandle->subscribersCount;
-			TBHandle->next_msg[TBHandle->last_write] = i;
-			TBHandle->last_write = i;
-			TBHandle->next_msg[TBHandle->last_write] = 0;
 			break;
 		}
 	}
@@ -106,7 +105,7 @@ void DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg)
  */
 tMsg DBRead(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID)
 {
-	xSemaphoreTake(DBuffer->sm.matrix[]);
-	ReadTopicBuffer();
+	//xSemaphoreTake(DBuffer->sm.matrix[], (portTickType) 0);
+	//ReadTopicBuffer();
 }
 

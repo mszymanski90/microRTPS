@@ -25,9 +25,9 @@
 /*
  * \brief Initializes EventQueue.
  */
-void initEventQueue(EventQueue eq, unsigned portBASE_TYPE QueueLength)
+EventQueue initEventQueue(unsigned portBASE_TYPE QueueLength)
 {
-	eq = xQueueCreate(sizeof(Event));
+	return xQueueCreate(QueueLength ,sizeof(Event));
 }
 
 /*

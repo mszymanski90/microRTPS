@@ -26,8 +26,8 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 {
 	TopicBufferHandle pom;
 
-	pom = rt_malloc(sizeof(TopicBuffer));
-	pom->messages = rt_malloc(TPBUF_LENGTH * msg_length);
+	pom = pvPortMalloc(sizeof(TopicBuffer));
+	pom->messages = pvPortMalloc(TPBUF_LENGTH * msg_length);
 	pom->topicID = topicID;
 	pom->sem = xCreateSemaphoreCounting(TPBUF_LENGTH, 0);
 	pom->subscribersCount = 0;

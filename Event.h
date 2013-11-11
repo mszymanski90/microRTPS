@@ -1,6 +1,6 @@
 /*
 *
-* sources/inc/Event.h - Event structure
+* Event.h - Event structure
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *

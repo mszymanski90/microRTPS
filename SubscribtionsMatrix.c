@@ -1,6 +1,6 @@
 /*
 *
-* sources/src/SubscribtionsMatrix.c - Subscriptions matrix
+* SubscribtionsMatrix.c - Subscriptions matrix
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -20,7 +20,7 @@
 *
 */
 
-#include "SubscriptionsMatrix.h"
+#include "SubscribtionsMatrix.h"
 
 void CreateSubscriptMatrix(SubscriptMatrixHandle SMHandle)
 {

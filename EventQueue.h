@@ -1,6 +1,6 @@
 /*
 *
-* sources/inc/EventQueue.h - Event Queue
+* EventQueue.h - Event Queue
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -23,6 +23,8 @@
 #ifndef EVENTQUEUE_H_
 #define EVENTQUEUE_H_
 
+#include "Event.h"
+
 #include "FreeRTOS.h"
 #include "queue.h"
 
@@ -34,21 +36,21 @@ typedef xQueueHandle EventQueue;
 /*
  * \brief Initializes EventQueue.
  */
-void initEventQueue(EventQueue* EQueue, unsigned portBASE_TYPE QueueLength);
+EventQueue initEventQueue(unsigned portBASE_TYPE QueueLength);
 
 /*
  * \brief Adds new event to end of queue.
  */
-void newEvent(EventQueue* EQueue, Event event);
+void newEvent(EventQueue EQueue, Event event);
 
 /*
  * \brief Returns adress of event on top of the queue.
  */
-Event* topEvent(EventQueue* EQueue);
+Event* topEvent(EventQueue EQueue);
 
 /*
  * \brief Erases event after service.
  */
-void topEventServiced(EventQueue* EQueue);
+void topEventServiced(EventQueue EQueue);
 
 #endif /* EVENTQUEUE_H_ */

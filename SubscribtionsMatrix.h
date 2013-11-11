@@ -27,8 +27,7 @@
 #include "queue.h"
 #include "semphr.h"
 
-#define MAX_TOPICS 4
-#define MAX_APPS 2
+#include "microRTPS_config.h"
 
 typedef struct sSubscribtMatrixElem
 {

@@ -84,7 +84,7 @@ void DBInit(DataBuffer* DBuffer)
 {
 	int i;
 
-	for(i=0; i<DB_COUNT; i++)
+	for(i=0; i<MAX_TOPICS; i++)
 	{
 		DBuffer->tb = 0;
 	}

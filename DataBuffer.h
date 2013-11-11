@@ -28,10 +28,9 @@
 #include "queue.h"
 #include "semphr.h"
 
-#include "SubscriptionsMatrix.h"
+#include "microRTPS_config.h"
+#include "SubscribtionsMatrix.h"
 
-#define DB_COUNT 4
-#define TPBUF_LENGTH 4
 
 typedef void* tMsg;
 
@@ -75,7 +74,7 @@ void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
 
 typedef struct sDataBuffer
 {
-	TopicBufferHandle tb[DB_COUNT];
+	TopicBufferHandle tb[MAX_TOPICS];
 	tSubscribtMatrix sm;
 } DataBuffer;
 

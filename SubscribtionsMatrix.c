@@ -58,14 +58,27 @@ void DeleteSubscriptMatrix(SubscribtMatrixHandle SMHandle)
 	}
 }
 
-void NewMsgInTopic(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID)
+void NewMsgInTopic(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE topicID)
 {
 	xSemaphoreGive(SMHandle->matrix[topicID][AppID].sem_in_msg);
 
 	// add messages to app queues
 }
 
-void MsgReadByApp(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID, portBASE_TYPE AppID, portBASE_TYPE last_rd)
+void MsgReadByApp(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE AppID)
 {
-	if(AppID <= MAX_APPS) SMHandle->matrix[topicID][AppID].last_read = last_rd;
+	// inform topic buffer that message is read
+	SMHandle->last_read = SMHandle->next_msg[AppID][SMHandle->last_read].point_next;
+}
+
+void GetNextMsg(SubscribtMatrixHandle SMHandle,
+		portBASE_TYPE AppID,
+		unsigned portBASE_TYPE* topicID,
+		unsigned portBASE_TYPE* msgID)
+{
+	xSemaphoreTake(SMHandle->app_semaphores[AppID], (portTickType) 0);
+
+	// zwrocic wskaznik na nastepna wiadomosc
+	*topicID = SMHandle->next_msg[AppID][SMHandle->last_read].topicID;
+	*msgID = SMHandle->next_msg[AppID][SMHandle->last_read].index;
 }

@@ -32,7 +32,7 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom->topicID = topicID;
 	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
 	pom->subscribersCount = 0;
-	pom->last_write=0;
+	pom->last_write = 0;
 
 	return pom;
 }
@@ -48,7 +48,6 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
 
 tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
 {
-
 	return TBHandle->messages[msg_index];
 }
 
@@ -102,10 +101,20 @@ void DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg)
 
 /*
  * \brief Reads from topic buffer.
+ *
+ * Assumes that message returned by last call of this function is
+ * no longer needed by application identified by appID.
  */
-tMsg DBRead(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID)
+tMsg DBRead(DataBuffer* DBuffer, unsigned portBASE_TYPE appID)
 {
-	//xSemaphoreTake(DBuffer->sm.matrix[], (portTickType) 0);
-	//ReadTopicBuffer();
+	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE msgID;
+
+	MsgDoneReading(&DBuffer->tb[DBuffer->sm->next_msg[DBuffer->sm->last_read].topicID],
+					DBuffer->sm->next_msg[DBuffer->sm->last_read].index);
+	MsgReadByApp(&DBuffer->sm, appID);
+	ReadNextMsg(&DBuffer->sm, appID, &topicID, &msgID);
+
+	return DBuffer->tb[topicID].messages[msgID];
 }
 

@@ -31,8 +31,11 @@
 
 typedef struct sMsgQueueElem
 {
+	// topicID of this message
 	unsigned portBASE_TYPE topicID;
+	// id in TopicBuffer
 	unsigned portBASE_TYPE index;
+	// id of next element in this Queue
 	unsigned portBASE_TYPE point_next;
 } MsgQueueElem;
 
@@ -46,7 +49,8 @@ typedef struct sSubscribtMatrix
 {
 	tSubscribtMatrixElem matrix[MAX_TOPICS][MAX_APPS];
 	xSemaphoreHandle app_semaphores[MAX_APPS];
-	MsgQueueElem next_msg[TPBUF_LENGTH*MAX_TOPICS];
+	MsgQueueElem next_msg[MAX_APPS][TPBUF_LENGTH*MAX_TOPICS];
+	unsigned portBASE_TYPE last_read[MAX_APPS];
 	unsigned portBASE_TYPE last_write;
 } tSubscribtMatrix;
 
@@ -54,7 +58,8 @@ typedef tSubscribtMatrix* SubscribtMatrixHandle;
 
 void InitSubscriptMatrix(SubscribtMatrixHandle SMHandle);
 void DeleteSubscriptMatrix(SubscribtMatrixHandle SMHandle);
-void NewMsgInTopic(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID);
-void MsgReadByApp(SubscribtMatrixHandle SMHandle, portBASE_TYPE topicID, portBASE_TYPE AppID, portBASE_TYPE last_rd);
+void NewMsgInTopic(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE topicID);
+void MsgReadByApp(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE AppID, unsigned portBASE_TYPE last_rd);
+tMsg GetNextMsg(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE AppID);
 
 #endif /* SUBSCRIBTIONSMATRIX_H_ */

@@ -22,61 +22,7 @@
 
 #include "DataBuffer.h"
 
-TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msg_length)
-{
-	TopicBufferHandle pom;
-	portBASE_TYPE i;
 
-	pom = pvPortMalloc(sizeof(TopicBuffer));
-	pom->messages = pvPortMalloc(TPBUF_LENGTH * msg_length);
-	pom->topicID = topicID;
-	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
-	pom->subscribersCount = 0;
-	pom->last_write = 0;
-
-	return pom;
-}
-
-portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
-{
-	vSemaphoreDelete(TBHandle->sem_space_left);
-	vPortFree(TBHandle->messages);
-	vPortFree(TBHandle);
-
-	return 0;
-}
-
-tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
-{
-	return TBHandle->messages[msg_index];
-}
-
-void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
-{
-	if(TBHandle->msgPendingReads[msg_index]>0) TBHandle->msgPendingReads[msg_index]--;
-
-	// all subscribing apps have read this message; this slot is now avaible for writing
-	if(TBHandle->msgPendingReads[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
-}
-
-void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
-{
-	int i;
-
-	// block if no space in buffer
-	xSemaphoreTake(TBHandle->sem_space_left, (portTickType) 0);
-
-	for(i=0; i<TPBUF_LENGTH; i++)
-	{
-		if(TBHandle->msgPendingReads[i]<=0)
-		{
-			// all apps subscribing this topic, read this message
-			TBHandle->messages[i] = msg;
-			TBHandle->msgPendingReads[i] = TBHandle->subscribersCount;
-			break;
-		}
-	}
-}
 
 void DBInit(DataBuffer* DBuffer)
 {

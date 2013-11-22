@@ -32,49 +32,7 @@
 #include "SubscribtionsMatrix.h"
 
 
-typedef void* tMsg;
 
-/*
- * \brief Buffer for messages.
- *
- * Topic Buffer provides an interface
- * to reading and writing from message buffer.
- */
-typedef struct sTopicBuffer
-{
-	unsigned portBASE_TYPE topicID;
-	tMsg* messages;
-	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
-	unsigned portBASE_TYPE subscribersCount;
-
-	xSemaphoreHandle sem_space_left;
-} TopicBuffer;
-
-typedef TopicBuffer* TopicBufferHandle;
-
-/*
- * \brief Creates TopicBuffer and returns a handle to it.
- */
-TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msg_length);
-
-portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle);
-
-/*
- * \brief Reads from Topic Buffer
- *
- * last_read_index- index of last read message in buffer,
- */
-tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
-
-/*
- * \brief Decrements msgPendingReads, Gives semaphore for writing.
- */
-void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
-
-/*
- * \brief Writes to Topic Buffer.
- */
-void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
 
 typedef struct sDataBuffer
 {

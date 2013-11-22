@@ -53,16 +53,36 @@ void DeleteSubscriptMatrix(SubscribtMatrixHandle SMHandle)
 	{
 		for(j=0; j<MAX_APPS; j++)
 		{
-			vSemaphoreDelete(SMHandle->matrix[i][j].sem_in_msg);
 		}
 	}
 }
 
-void NewMsgInTopic(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE topicID)
+void NewMsgInTopic(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgID)
 {
-	xSemaphoreGive(SMHandle->matrix[topicID][AppID].sem_in_msg);
+	unsigned portBASE_TYPE i;
+	unsigned portBASE_TYPE j;
+
+	for(i=0; i<MAX_APPS; i++)
+	{
+		xSemaphoreGive(SMHandle->app_semaphores[i]);
+
+		for(j=0; j<MSG_QUEUE_LENGTH; j++)
+		{
+			if(SMHandle->next_msg[j].index == MSG_QUEUE_LENGTH+1)
+			{
+				// found empty slot
+
+				SMHandle->next_msg[j].index = msgID;
+				SMHandle->next_msg[j].topicID = topicID;
+				SMHandle->next_msg[j].point_next = SMHandle->last_write;
+
+				break;
+			}
+		}
+	}
 
 	// add messages to app queues
+
 }
 
 void MsgReadByApp(SubscribtMatrixHandle SMHandle, unsigned portBASE_TYPE AppID)

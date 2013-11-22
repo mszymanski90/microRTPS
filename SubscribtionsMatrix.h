@@ -29,6 +29,8 @@
 
 #include "microRTPS_config.h"
 
+#define MSG_QUEUE_LENGTH TPBUF_LENGTH*MAX_TOPICS
+
 typedef struct sMsgQueueElem
 {
 	// topicID of this message
@@ -49,8 +51,9 @@ typedef struct sSubscribtMatrix
 {
 	tSubscribtMatrixElem matrix[MAX_TOPICS][MAX_APPS];
 	xSemaphoreHandle app_semaphores[MAX_APPS];
-	MsgQueueElem next_msg[MAX_APPS][TPBUF_LENGTH*MAX_TOPICS];
+	MsgQueueElem next_msg[MAX_APPS][MSG_QUEUE_LENGTH];
 	unsigned portBASE_TYPE last_read[MAX_APPS];
+	unsigned portBASE_TYPE last_written[MAX_APPS];
 	unsigned portBASE_TYPE last_write;
 } tSubscribtMatrix;
 

@@ -95,8 +95,10 @@ void DBInit(DataBuffer* DBuffer)
  */
 void DBWrite(DataBuffer* DBuffer, unsigned portBASE_TYPE topicID, tMsg msg)
 {
-	WriteTopicBuffer(DBuffer->tb[topicID], msg);
-	NewMsgInTopic(DBuffer->sm, topicID);
+	unsigned portBASE_TYPE msgID;
+
+	msgID = WriteTopicBuffer(DBuffer->tb[topicID], msg);
+	NewMsgInTopic(&DBuffer->sm, topicID, msgID);
 }
 
 /*

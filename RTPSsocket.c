@@ -29,9 +29,13 @@ void RTPSsocketInit(RTPSsocket* socket)
 
 unsigned portBASE_TYPE RTPSsocketRead(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
 {
+	MsgAddress adr;
 	//PreviousMsgIsRead();
 	xSemaphoreTake(socket->semNewMsg);
-	//
+	adr = MsgQueueRead(socket->msgQueue);
+
+	topicID = adr.topicID;
+	msgBuf = GetMsgFromTopicBuffer(mRTPS->TBHandle[adr.topicID], adr.msgID);
 }
 
 unsigned portBASE_TYPE RTPSsocketWrite(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)

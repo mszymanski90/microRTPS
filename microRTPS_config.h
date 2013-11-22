@@ -20,12 +20,15 @@
 *
 */
 
-
 #ifndef MICRORTPS_CONFIG_H_
 #define MICRORTPS_CONFIG_H_
 
+// user settings
 #define MAX_TOPICS 4
 #define TPBUF_LENGTH 4
 #define MAX_APPS 2
+
+//
+#define MSG_QUEUE_LENGTH TPBUF_LENGTH*MAX_TOPICS
 
 #endif /* MICRORTPS_CONFIG_H_ */

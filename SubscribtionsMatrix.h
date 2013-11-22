@@ -29,7 +29,7 @@
 
 #include "microRTPS_config.h"
 
-#define MSG_QUEUE_LENGTH TPBUF_LENGTH*MAX_TOPICS
+
 
 typedef struct sMsgQueueElem
 {

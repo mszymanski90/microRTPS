@@ -23,6 +23,25 @@
 #ifndef MSGFIFO_H_
 #define MSGFIFO_H_
 
+#include "microRTPS_config.h"
 
+typedef struct sMsgAddress
+{
+	// pointer directly to topic buffer element ?
+	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE msgID;
+} MsgAddress;
+
+typedef struct sMsgQueue
+{
+	MsgAddress queue[MSG_QUEUE_LENGTH];
+	unsigned portBASE_TYPE full;
+	unsigned portBASE_TYPE in;
+	unsigned portBASE_TYPE out;
+} MsgQueue;
+
+void MsgQueueInit(MsgQueue* msgQueue);
+MsgAddress MsgQueueRead(MsgQueue* msgQueue);
+void MsgQueueWrite(MsgQueue* msgQueue, MsgAddress queueElem);
 
 #endif /* MSGFIFO_H_ */

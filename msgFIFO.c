@@ -21,3 +21,32 @@
 */
 
 #include "msgFIFO.h"
+
+void MsgQueueInit(MsgQueue* msgQueue)
+{
+	msgQueue->full=0;
+	msgQueue->in=0;
+	msgQueue->out=0;
+}
+
+MsgAddress MsgQueueRead(MsgQueue* msgQueue)
+{
+	msgQueue->out++;
+	if(msgQueue->out >= MSG_QUEUE_LENGTH) msgQueue->out = 0;
+	if(msgQueue->in == msgQueue->out) msgQueue->full = 0;
+
+	return msgQueue->queue[msgQueue->out - 1];
+}
+
+void MsgQueueWrite(MsgQueue* msgQueue, MsgAddress queueElem)
+{
+	if(!msgQueue->full)
+	{
+		msgQueue->queue[msgQueue->in] = queueElem;
+		msgQueue->in++;
+
+		if(msgQueue->in >= MSG_QUEUE_LENGTH) msgQueue->in = 0;
+		if(msgQueue->in == msgQueue->out) msgQueue->full = 1;
+	}
+}
+

@@ -27,14 +27,15 @@
 #include "list.h"
 
 #include "microRTPS_config.h"
+#include "msgFIFO.h"
 
 typedef struct sRTPSsocket
 {
-	// microRTPS* mRTPS;
+	microRTPS* mRTPS;
 	xListItem socket_list;
 	xSemaphoreHandle semNewMsg;
 	unsigned portBASE_TYPE subscribedTopics[MAX_TOPICS];
-	msgFIFO msgQueue;
+	MsgQueue msgQueue;
 } RTPSsocket;
 
 void RTPSsocketInit(RTPSsocket* socket);

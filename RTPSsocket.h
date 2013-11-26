@@ -41,7 +41,7 @@ typedef struct sRTPSsocket
 /*
  * \brief Searches subscribed topics for matching topicID, new message in socket if success.
  */
-void RTPSsocketNewMessageInTopic(unsigned portBASE_TYPE topicID);
+void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 
 void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS);
 unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE* topicID);

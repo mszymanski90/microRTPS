@@ -22,6 +22,33 @@
 
 #include "RTPSsocket.h"
 
+void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgID)
+{
+	unsigned portBASE_TYPE i;
+	unsigned portBASE_TYPE topicIsSubscribed;
+	MsgAddress msg_addr;
+
+	topicIsSubscribed = 0;
+
+	for(i=0; i<MAX_TOPICS; i++)
+	{
+		if(socket->subscribedTopics[i] == topicID)
+		{
+			topicIsSubscribed = 1;
+			break;
+		}
+	}
+
+	if(topicIsSubscribed)
+	{
+		// TODO: make msg_addr an argument of this function
+		msg_addr.msgID = msgID;
+		msg_addr.topicID = topicID;
+		// push this message into message queue
+		MsgQueueWrite(socket->msgQueue, msg_addr);
+	}
+}
+
 void RTPSsocketInit(RTPSsocket* socket)
 {
 
@@ -35,7 +62,7 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portB
 	adr = MsgQueueRead(socket->msgQueue);
 
 	topicID = adr.topicID;
-	msgBuf = GetMsgFromTopicBuffer(mRTPS->TBHandle[adr.topicID], adr.msgID);
+	msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->topicBuffers[adr.topicID], adr.msgID);
 }
 
 /* publishes from this socket */

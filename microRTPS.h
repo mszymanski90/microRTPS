@@ -23,6 +23,30 @@
 #ifndef MICRORTPS_H_
 #define MICRORTPS_H_
 
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+
+#include "microRTPS_config.h"
+#include "TopicBuffer.h"
+
+
+typedef struct smicroRTPS
+{
+	TopicBufferHandle topicBuffers[MAX_TOPICS];
+	xListItem socketList;
+} microRTPS;
+
+/*
+ * \brief Initializes microRTPS structure.
+ */
+void microRTPSInit(microRTPS* mRTPS);
+
+/*
+ * \brief Copies message to internal data base and notifies sockets that subscribe this topic.
+ */
+void microRTPSNewMsgInTopic(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID);
 
 
 #endif /* MICRORTPS_H_ */

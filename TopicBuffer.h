@@ -39,6 +39,8 @@ typedef void* tMsg;
 typedef struct sTopicBuffer
 {
 	unsigned portBASE_TYPE topicID;
+	// topic name
+	unsigned portBASE_TYPE msg_length;
 	tMsg* messages;
 	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
 	unsigned portBASE_TYPE subscribersCount;

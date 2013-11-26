@@ -22,5 +22,16 @@
 
 #include "microRTPS.h"
 
+void microRTPSInit(microRTPS* mRTPS)
+{
+
+}
+
+void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID)
+{
+	// blocks on semaphore if there is no space left
+	WriteTopicBuffer(&(mRTPS->topicBuffers[topicID]), msgBuf);
+	// find sockets that subscribe this topic ID
+}
 
 

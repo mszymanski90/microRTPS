@@ -38,9 +38,14 @@ typedef struct sRTPSsocket
 	MsgQueue msgQueue;
 } RTPSsocket;
 
-void RTPSsocketInit(RTPSsocket* socket);
-unsigned portBASE_TYPE RTPSsocketRead(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID);
-unsigned portBASE_TYPE RTPSsocketWrite(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID);
+/*
+ * \brief Searches subscribed topics for matching topicID, new message in socket if success.
+ */
+void RTPSsocketNewMessageInTopic(unsigned portBASE_TYPE topicID);
+
+void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS);
+unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE* topicID);
+unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID);
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 

@@ -27,7 +27,7 @@ void RTPSsocketInit(RTPSsocket* socket)
 
 }
 
-unsigned portBASE_TYPE RTPSsocketRead(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
+unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
 {
 	MsgAddress adr;
 	//PreviousMsgIsRead();
@@ -38,7 +38,8 @@ unsigned portBASE_TYPE RTPSsocketRead(RTPSsocket* socket, void* msgBuf, portBASE
 	msgBuf = GetMsgFromTopicBuffer(mRTPS->TBHandle[adr.topicID], adr.msgID);
 }
 
-unsigned portBASE_TYPE RTPSsocketWrite(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
+/* publishes from this socket */
+unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
 
 }

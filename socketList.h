@@ -1,6 +1,6 @@
 /*
 *
-* microRTPS.h - microRTPS
+* socketList.h - socket list
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -20,20 +20,12 @@
 *
 */
 
-#include "microRTPS.h"
+#ifndef SOCKETLIST_H_
+#define SOCKETLIST_H_
 
-void microRTPSInit(microRTPS* mRTPS)
+typedef struct ssocketList
 {
 
-}
+} socketList;
 
-void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID)
-{
-	// blocks on semaphore if there is no space left
-	WriteTopicBuffer(&(mRTPS->topicBuffers[topicID]), msgBuf);
-
-	// TODO: find sockets that subscribe this topic ID
-	// TODO: check all elements of the list
-}
-
-
+#endif /* SOCKETLIST_H_ */

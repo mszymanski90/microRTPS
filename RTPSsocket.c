@@ -63,6 +63,8 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portB
 
 	topicID = adr.topicID;
 	msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->topicBuffers[adr.topicID], adr.msgID);
+
+	return 0;
 }
 
 /* publishes from this socket */

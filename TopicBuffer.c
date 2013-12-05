@@ -32,7 +32,6 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom->topicID = topicID;
 	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
 	pom->subscribersCount = 0;
-	pom->last_write = 0;
 
 	return pom;
 }

@@ -47,6 +47,10 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS);
 unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE* topicID);
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID);
+
+/*
+ * \brief Adds topic to list of topics subscribed by socket.
+ */
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 

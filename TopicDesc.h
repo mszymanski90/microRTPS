@@ -1,6 +1,6 @@
 /*
 *
-* microRTPS.h - microRTPS
+* TopicDesc.h - topic descriptor
 *
 * Copyright (C) 2013         Maciej Szymañski <mszymanski90@gmail.com>
 *
@@ -20,36 +20,16 @@
 *
 */
 
-#ifndef MICRORTPS_H_
-#define MICRORTPS_H_
+#ifndef TOPICDESC_H_
+#define TOPICDESC_H_
 
 #include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
 
-#include "microRTPS_config.h"
-#include "TopicBuffer.h"
-#include "TopicDesc.h"
-#include "socketList.h"
-
-
-typedef struct smicroRTPS
+typedef struct sTopicDesc
 {
-	TopicBufferHandle topicBuffers[MAX_TOPICS];
-	TopicDesc topicList[MAX_TOPICS];
-	socketListElem* socketList;
-} microRTPS;
+	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE subscribersCount;
+	unsigned portBASE_TYPE tpbuf_index;
+} TopicDesc;
 
-/*
- * \brief Initializes microRTPS structure.
- */
-void microRTPSInit(microRTPS* mRTPS);
-
-/*
- * \brief Copies message to internal data base and notifies sockets that subscribe this topic.
- */
-void microRTPSNewMsgInTopic(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID);
-
-
-#endif /* MICRORTPS_H_ */
+#endif /* TOPICDESC_H_ */

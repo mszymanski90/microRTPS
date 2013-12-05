@@ -36,6 +36,7 @@ typedef struct sRTPSsocket
 	xSemaphoreHandle semNewMsg;
 	unsigned portBASE_TYPE subscribedTopics[MAX_TOPICS];
 	MsgQueue msgQueue;
+	MsgAddress addr;
 } RTPSsocket;
 
 /*

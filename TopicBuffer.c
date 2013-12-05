@@ -59,7 +59,7 @@ void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index
 	if(TBHandle->msgPendingReads[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
 }
 
-void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
+void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, unsigned portBASE_TYPE subscribers_count)
 {
 	int i;
 
@@ -72,7 +72,7 @@ void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 		{
 			// all apps subscribing this topic, read this message
 			TBHandle->messages[i] = msg;
-			TBHandle->msgPendingReads[i] = TBHandle->subscribersCount;
+			TBHandle->msgPendingReads[i] = subscribers_count;
 			break;
 		}
 	}

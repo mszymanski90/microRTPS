@@ -56,13 +56,12 @@ void RTPSsocketInit(RTPSsocket* socket)
 
 unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
 {
-	MsgAddress adr;
-	//PreviousMsgIsRead();
+	MsgDoneReading(socket->mRTPS->topicBuffers[socket->addr.topicID], socket->addr.msgID);
 	xSemaphoreTake(socket->semNewMsg);
-	adr = MsgQueueRead(socket->msgQueue);
+	socket->addr = MsgQueueRead(socket->msgQueue);
 
-	topicID = adr.topicID;
-	msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->topicBuffers[adr.topicID], adr.msgID);
+	topicID = socket->addr.topicID;
+	msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->topicBuffers[socket->addr.topicID], socket->addr.msgID);
 
 	return 0;
 }
@@ -75,6 +74,7 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
 
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID)
 {
+	// TODO: remember number of subscribents, use this number to set pending reads in topic buffer
 
 }
 

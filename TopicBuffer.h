@@ -72,6 +72,6 @@ void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index
 /*
  * \brief Writes to Topic Buffer.
  */
-void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
+void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, unsigned portBASE_TYPE subscribers_count);
 
 #endif /* TOPICBUFFER_H_ */

@@ -19,3 +19,38 @@
 * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 *
 */
+
+void SLE_Init(socketListElem* elem, void* container)
+{
+	elem->container = container;
+	elem->next = 0;
+	elem->prev = 0;
+}
+
+void SLE_Push(socketListElem** first, socketListElem* new)
+{
+	(*first)->prev = new;
+	(*first) = new;
+
+	new->next = (*first);
+	new->prev = 0;
+}
+
+socketListElem* SLE_Next(socketListElem* current)
+{
+	return current->next;
+}
+
+socketListElem* SLE_Prev(socketListElem* current)
+{
+	return current->next;
+}
+
+void SLE_Remove(socketListElem* removed)
+{
+	(removed->next)->prev = (removed->prev);
+	(removed->prev)->next = (removed->next);
+
+	removed->prev = 0;
+	removed->next = 0;
+}

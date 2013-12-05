@@ -29,11 +29,15 @@ void microRTPSInit(microRTPS* mRTPS)
 
 void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
+	socketListElem* elem = mRTPS->socketList;
 	// blocks on semaphore if there is no space left
 	WriteTopicBuffer(&(mRTPS->topicBuffers[topicID]), msgBuf);
 
-	// TODO: find sockets that subscribe this topic ID
-	// TODO: check all elements of the list
+	while(elem != 0)
+	{
+		RTPSsocketNewMessageInTopic(elem->container, topicID);
+		elem = SLE_Next(elem);
+	}
 }
 
 

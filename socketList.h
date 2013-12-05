@@ -23,9 +23,18 @@
 #ifndef SOCKETLIST_H_
 #define SOCKETLIST_H_
 
-typedef struct ssocketList
+typedef struct ssocketListElem
 {
+	socketListElem* next;
+	socketListElem* prev;
 
-} socketList;
+	void* container;
+} socketListElem;
+
+void SLE_Init(socketListElem* elem);
+void SLE_Push(socketListElem* first, socketListElem* new);
+socketListElem* SLE_Next(socketListElem* current);
+socketListElem* SLE_Prev(socketListElem* current);
+void SLE_Remove(socketListElem* removed);
 
 #endif /* SOCKETLIST_H_ */

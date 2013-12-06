@@ -30,14 +30,20 @@
 #include "microRTPS.h"
 #include "msgFIFO.h"
 
+typedef struct sSubscribtion
+{
+	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE tpbufID;
+} Subscribtion;
+
 typedef struct sRTPSsocket
 {
 	microRTPS* mRTPS;
 	xListItem socket_list;
 	xSemaphoreHandle semNewMsg;
+	unsigned portBASE_TYPE inProcedure;
 
-	// TODO: change data type to structure: topicID, tpbufID
-	unsigned portBASE_TYPE subscribedTopics[MAX_TOPICS];
+	Subscribtion subscribedTopics[MAX_TOPICS];
 	MsgQueue msgQueue;
 	MsgAddress addr;
 } RTPSsocket;
@@ -52,11 +58,11 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, unsig
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID);
 
 /*
- * \brief Adds topic to list of topics subscribed by socket.
+ * \brief Adds topic to list of topics subscribed by socket (if TID is known).
  *
  * Note that topicID must be known by the system.
  */
-unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
+unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 
 unsigned portBASE_TYPE RTPSsocketRegister(RTPSsocket* socket, unsigned portBASE_TYPE name); // name is temporary

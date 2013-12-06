@@ -51,12 +51,16 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 
 void RTPSsocketInit(RTPSsocket* socket)
 {
-
+	// TODO: create semaphores
+	socket->inProcedure = 0;
 }
 
 unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
 {
 	MsgDoneReading(socket->mRTPS->topicBuffers[socket->addr.topicID], socket->addr.msgID);
+
+	if(socket->inProcedure == 1) return 1;
+
 	xSemaphoreTake(socket->semNewMsg);
 	socket->addr = MsgQueueRead(socket->msgQueue);
 
@@ -72,19 +76,19 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
 
 }
 
-unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID)
+unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
 {
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE tpbufID;
 
-	tpbufID = microRTPSAssertTopicIsSubscribed(socket->mRTPS, topicID);
+	tpbufID = microRTPSAssertTopicIsSubscribed(socket->mRTPS, topicID, msgLength);
 
 	for(i=0; i<MAX_TOPICS; i++)
 	{
 		if(socket->subscribedTopics[i] == 0)
 		{
 			socket->subscribedTopics[i] = topicID;
-
+			// TODO: tpbufID to subscribedTopics
 		}
 	}
 }

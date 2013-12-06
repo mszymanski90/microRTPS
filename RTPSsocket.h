@@ -29,6 +29,7 @@
 #include "microRTPS_config.h"
 #include "microRTPS.h"
 #include "msgFIFO.h"
+#include "socketList.h"
 
 typedef struct sSubscribtion
 {
@@ -39,7 +40,7 @@ typedef struct sSubscribtion
 typedef struct sRTPSsocket
 {
 	microRTPS* mRTPS;
-	xListItem socket_list;
+	socketListElem listItem;
 	xSemaphoreHandle semNewMsg;
 	unsigned portBASE_TYPE inProcedure;
 

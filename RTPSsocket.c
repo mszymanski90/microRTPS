@@ -62,7 +62,10 @@ void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS)
 		socket->subscribedTopics[i].tpbufID=MAX_TOPICS;
 	}
 
-	msgQueueInit(socket->msgQueue);
+	msgQueueInit(&(socket->msgQueue));
+
+	SLE_Init(&(socket->listItem), socket);
+	SLE_Push(&(socket->mRTPS->socketList), socket->listItem);
 }
 
 unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)

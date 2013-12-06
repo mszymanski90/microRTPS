@@ -49,10 +49,20 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 	}
 }
 
-void RTPSsocketInit(RTPSsocket* socket)
+void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS)
 {
-	// TODO: create semaphores
+	unsigned portBASE_TYPE i;
+	socket->semNewMsg = xSemaphoreCreateCounting(MSG_QUEUE_LENGTH, 0);
 	socket->inProcedure = 0;
+	socket->mRTPS = mRTPS;
+
+	for(i=0; i<MAX_TOPICS; i++)
+	{
+		socket->subscribedTopics[i].topicID=0;
+		socket->subscribedTopics[i].tpbufID=MAX_TOPICS;
+	}
+
+	msgQueueInit(socket->msgQueue);
 }
 
 unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
@@ -70,7 +80,6 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portB
 	return 0;
 }
 
-/* publishes from this socket */
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
 

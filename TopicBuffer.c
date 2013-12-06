@@ -52,10 +52,10 @@ tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE ms
 
 void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
 {
-	if(TBHandle->msgPendingReads[msg_index]>0) TBHandle->msgPendingReads[msg_index]--;
+	if(TBHandle->msgPendingActions[msg_index]>0) TBHandle->msgPendingActions[msg_index]--;
 
 	// all subscribing apps have read this message; this slot is now avaible for writing
-	if(TBHandle->msgPendingReads[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
+	if(TBHandle->msgPendingActions[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
 }
 
 void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
@@ -67,11 +67,11 @@ void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 
 	for(i=0; i<TPBUF_LENGTH; i++)
 	{
-		if(TBHandle->msgPendingReads[i]<=0)
+		if(TBHandle->msgPendingActions[i]<=0)
 		{
 			// all apps subscribing this topic, read this message
 			TBHandle->messages[i] = msg;
-			TBHandle->msgPendingReads[i] = TBHandle->subscribersCount;
+			TBHandle->msgPendingActions[i] = TBHandle->subscribersCount;
 			break;
 		}
 	}

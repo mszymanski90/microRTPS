@@ -70,7 +70,7 @@ void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS)
 
 unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
 {
-	MsgDoneReading(socket->mRTPS->topicBuffers[socket->addr.topicID], socket->addr.msgID);
+	MsgDoneReading(socket->mRTPS->rxTopicBuffers[socket->addr.topicID], socket->addr.msgID);
 
 	if(socket->inProcedure == 1) return 1;
 
@@ -78,13 +78,24 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portB
 	socket->addr = MsgQueueRead(socket->msgQueue);
 
 	topicID = socket->addr.topicID;
-	msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->topicBuffers[socket->addr.topicID], socket->addr.msgID);
+	msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->rxTopicBuffers[socket->addr.topicID], socket->addr.msgID);
 
 	return 0;
 }
 
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
+	unsigned portBASE_TYPE tpbufID;
+	tpbufID = microRTPS_FindTpbufByTopicID(socket->mRTPS, topicID);
+
+	// what is needed to publish ?
+	// -msgLength
+	// -topicID
+	/*
+	 * 1. Copy msgBuf to TopicBuffer
+	 * 2. Check if any socket subscribes this topic
+	 * 3. Queue msg for sending
+	 */
 
 }
 
@@ -116,5 +127,10 @@ unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned p
 	// TODO: search for matching topicID in subscribedTopics
 	// TODO: insert 0 in place of found match
 	// TODO: decrement subscribers count in tpbuf
+}
+
+unsigned portBASE_TYPE RTPSsocketRegisterTopic(RTPSsocket* socket, unsigned portBASE_TYPE name)
+{
+
 }
 

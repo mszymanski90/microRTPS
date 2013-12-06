@@ -68,4 +68,6 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 
+unsigned portBASE_TYPE RTPSsocketRegisterTopic(RTPSsocket* socket, unsigned portBASE_TYPE name);
+
 #endif /* RTPSSOCKET_H_ */

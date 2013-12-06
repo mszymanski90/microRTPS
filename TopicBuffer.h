@@ -43,7 +43,7 @@ typedef struct sTopicBuffer
 	unsigned portBASE_TYPE subscribersCount;
 
 	tMsg* messages;
-	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
+	unsigned portBASE_TYPE msgPendingActions[TPBUF_LENGTH];
 
 
 	xSemaphoreHandle sem_space_left;

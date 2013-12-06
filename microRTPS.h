@@ -31,12 +31,15 @@
 #include "microRTPS_config.h"
 #include "TopicBuffer.h"
 #include "socketList.h"
+#include "msgFIFO.h"
 
 
 typedef struct smicroRTPS
 {
-	TopicBufferHandle topicBuffers[MAX_TOPICS];
+	TopicBufferHandle rxTopicBuffers[MAX_TOPICS];
+	TopicBufferHandle txTopicBuffers[MAX_TOPICS];
 	socketListElem* socketList;
+	MsgQueue txMsgQueue;
 } microRTPS;
 
 /*

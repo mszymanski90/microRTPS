@@ -27,6 +27,7 @@
 #include "list.h"
 
 #include "microRTPS_config.h"
+#include "microRTPS.h"
 #include "msgFIFO.h"
 
 typedef struct sRTPSsocket
@@ -50,6 +51,8 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
 
 /*
  * \brief Adds topic to list of topics subscribed by socket.
+ *
+ * Note that topicID must be known by the system.
  */
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);

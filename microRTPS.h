@@ -49,7 +49,16 @@ void microRTPSInit(microRTPS* mRTPS);
 /*
  * \brief Copies message to internal data base and notifies sockets that subscribe this topic.
  */
-void microRTPSNewMsgInTopic(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID);
+void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID);
 
+/*
+ * \brief Checks if topic is subscribed from broker, if not sends subscribe message.
+ */
+void microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
+
+void microRTPSReceivedSubscribeReply(microRTPS* mRTPS);
+
+unsigned portBASE_TYPE microRTPS_FindTpbufByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
+unsigned portBASE_TYPE microRTPS_FindTopicDescByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
 
 #endif /* MICRORTPS_H_ */

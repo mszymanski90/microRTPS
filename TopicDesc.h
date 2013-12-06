@@ -30,6 +30,7 @@ typedef struct sTopicDesc
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE subscribersCount;
 	unsigned portBASE_TYPE tpbuf_index;
+	unsigned portBASE_TYPE msgLength;
 } TopicDesc;
 
 #endif /* TOPICDESC_H_ */

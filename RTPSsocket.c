@@ -75,12 +75,18 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID)
 {
 	unsigned portBASE_TYPE i;
-	// TODO: remember number of subscribents, use this number to set pending reads in topic buffer
+	unsigned portBASE_TYPE descID;
+
+	descID = microRTPS_FindTopicDescByTopicID(socket->mRTPS, topicID);
+
+	microRTPSAssertTopicIsSubscribed(socket->mRTPS, topicID);
+
 	for(i=0; i<MAX_TOPICS; i++)
 	{
 		if(socket->subscribedTopics[i] == 0)
 		{
 			socket->subscribedTopics[i] = topicID;
+			socket->mRTPS->topicList[descID].subscribersCount++;
 		}
 	}
 }

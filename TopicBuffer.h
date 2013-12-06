@@ -39,11 +39,12 @@ typedef void* tMsg;
 typedef struct sTopicBuffer
 {
 	unsigned portBASE_TYPE topicID;
-	// topic name
 	unsigned portBASE_TYPE msg_length;
+	unsigned portBASE_TYPE subscribersCount;
+
 	tMsg* messages;
 	unsigned portBASE_TYPE msgPendingReads[TPBUF_LENGTH];
-	unsigned portBASE_TYPE subscribersCount;
+
 
 	xSemaphoreHandle sem_space_left;
 } TopicBuffer;
@@ -72,6 +73,6 @@ void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index
 /*
  * \brief Writes to Topic Buffer.
  */
-void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, unsigned portBASE_TYPE subscribers_count);
+void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
 
 #endif /* TOPICBUFFER_H_ */

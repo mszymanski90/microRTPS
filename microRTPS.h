@@ -30,14 +30,12 @@
 
 #include "microRTPS_config.h"
 #include "TopicBuffer.h"
-#include "TopicDesc.h"
 #include "socketList.h"
 
 
 typedef struct smicroRTPS
 {
 	TopicBufferHandle topicBuffers[MAX_TOPICS];
-	TopicDesc topicList[MAX_TOPICS];
 	socketListElem* socketList;
 } microRTPS;
 
@@ -51,14 +49,16 @@ void microRTPSInit(microRTPS* mRTPS);
  */
 void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID);
 
+void microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg);
+
 /*
- * \brief Checks if topic is subscribed from broker, if not sends subscribe message.
+ * \brief Checks if topic is subscribed (if buffer marked with topicID exists).
  */
 void microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
 
-void microRTPSReceivedSubscribeReply(microRTPS* mRTPS);
-
+/*
+ * \brief Returns index of topicBuffer that contains corresponding topicID.
+ */
 unsigned portBASE_TYPE microRTPS_FindTpbufByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
-unsigned portBASE_TYPE microRTPS_FindTopicDescByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
 
 #endif /* MICRORTPS_H_ */

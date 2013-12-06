@@ -35,6 +35,8 @@ typedef struct sRTPSsocket
 	microRTPS* mRTPS;
 	xListItem socket_list;
 	xSemaphoreHandle semNewMsg;
+
+	// TODO: change data type to structure: topicID, tpbufID
 	unsigned portBASE_TYPE subscribedTopics[MAX_TOPICS];
 	MsgQueue msgQueue;
 	MsgAddress addr;
@@ -56,5 +58,7 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
  */
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
+
+unsigned portBASE_TYPE RTPSsocketRegister(RTPSsocket* socket, unsigned portBASE_TYPE name); // name is temporary
 
 #endif /* RTPSSOCKET_H_ */

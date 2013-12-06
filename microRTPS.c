@@ -76,7 +76,7 @@ void microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, 
 	WriteTopicBuffer(&(mRTPS->topicBuffers[microRTPS_FindTpbufByTopicID(mRTPS, topicID)]), msg);
 }
 
-void microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
+unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
 {
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE tpbufID;
@@ -103,6 +103,7 @@ void microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE t
 		if(tpbufID == MAX_TOPICS)
 		{
 			// error: no space left
+			return MAX_TOPICS;
 		}
 		else
 		{
@@ -111,41 +112,12 @@ void microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE t
 	}
 
 	mRTPS->topicBuffers[tpbufID].subscribersCount++;
+	return tpbufID;
 }
 
 void microRTPSRegister(microRTPS* mRTPS, unsigned portBASE_TYPE name)
 {
 	// send REGISTER frame
-}
-
-void microRTPSReceivedSubscribeReply(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
-{
-	unsigned portBASE_TYPE i;
-	unsigned portBASE_TYPE j;
-	unsigned portBASE_TYPE emptyBufFound;
-	unsigned portBASE_TYPE emptySlotFound;
-
-	// find empty topic buffers slot
-	// find empty topic list slot
-	// write topicID, msgLength
-	// TODO: write topic name to topic list
-
-	emptyBufFound = 0;
-
-	for(i=0; i<MAX_TOPICS; i++)
-	{
-		if(mRTPS->topicBuffers == 0)
-		{
-			emptyBufFound = 1;
-			break;
-		}
-	}
-
-	// find empty slot (topicID == 0)
-	j = microRTPS_FindTpbufByTopicID(mRTPS, 0);
-
-	mRTPS->topicBuffers[i] = CreateTopicBuffer(mRTPS->topicList[j].topicID, mRTPS->topicList[j].msgLength);
-	mRTPS->topicList[j].tpbuf_index = i;
 }
 
 unsigned portBASE_TYPE microRTPS_FindTpbufIndexByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID)

@@ -54,7 +54,7 @@ void microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, 
 /*
  * \brief Checks if topic is subscribed (if buffer marked with topicID exists).
  */
-void microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
+unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 
 void microRTPSRegister(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
 

@@ -62,10 +62,10 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
  * \brief Adds topic to list of topics subscribed by socket (if TID is known).
  *
  * Note that topicID must be known by the system.
+ * \retval 0 success
+ * \retval 1 error
  */
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
-
-unsigned portBASE_TYPE RTPSsocketRegister(RTPSsocket* socket, unsigned portBASE_TYPE name); // name is temporary
 
 #endif /* RTPSSOCKET_H_ */

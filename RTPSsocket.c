@@ -87,8 +87,8 @@ unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned por
 	{
 		if(socket->subscribedTopics[i] == 0)
 		{
-			socket->subscribedTopics[i] = topicID;
-			// TODO: tpbufID to subscribedTopics
+			socket->subscribedTopics[i].topicID = topicID;
+			socket->subscribedTopics[i].tpbufID = tpbufID;
 		}
 	}
 }

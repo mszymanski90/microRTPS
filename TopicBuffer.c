@@ -58,9 +58,9 @@ void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index
 	if(TBHandle->msgPendingActions[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
 }
 
-void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
+unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 {
-	int i;
+	unsigned portBASE_TYPE i;
 
 	// block if no space in buffer
 	xSemaphoreTake(TBHandle->sem_space_left, (portTickType) 0);
@@ -70,9 +70,14 @@ void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg)
 		if(TBHandle->msgPendingActions[i]<=0)
 		{
 			// all apps subscribing this topic, read this message
+			// TODO: loop copying number of bytes (msg_length)
 			TBHandle->messages[i] = msg;
 			TBHandle->msgPendingActions[i] = TBHandle->subscribersCount;
-			break;
+
+			return i;
 		}
 	}
+
+	// error ??
+	return TPBUF_LENGTH;
 }

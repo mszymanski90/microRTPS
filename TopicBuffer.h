@@ -73,6 +73,6 @@ void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index
 /*
  * \brief Writes to Topic Buffer.
  */
-void WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
+unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
 
 #endif /* TOPICBUFFER_H_ */

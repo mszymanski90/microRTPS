@@ -27,7 +27,7 @@
 
 typedef struct sMsgAddress
 {
-	// pointer directly to topic buffer element ?
+	// pointer directly to topic buffer element ? accessing should be through topic buffer methods
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE msgID;
 } MsgAddress;

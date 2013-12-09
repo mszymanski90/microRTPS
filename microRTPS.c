@@ -55,25 +55,22 @@ void microRTPSInit(microRTPS* mRTPS)
 void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
 
-	unsigned portBASE_TYPE descID;
-
-	descID = mRTPS->topicList[microRTPS_FindTopicDescByTopicID(mRTPS, topicID);
+	unsigned portBASE_TYPE msgID;
 
 	socketListElem* elem = mRTPS->socketList;
 
-	microRTPSWriteTpbufByTID(mRTPS, topicID, msgBuf);
+	msgID = microRTPSWriteTpbufByTID(mRTPS, topicID, msgBuf);
 
 	while(elem != 0)
 	{
-		RTPSsocketNewMessageInTopic(elem->container, topicID);
+		RTPSsocketNewMessageInTopic(elem->container, topicID, msgID);
 		elem = SLE_Next(elem);
 	}
 }
 
-void microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg)
+unsigned portBASE_TYPE microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg)
 {
-
-	WriteTopicBuffer(&(mRTPS->rxTopicBuffers[microRTPS_FindTpbufByTopicID(mRTPS, topicID)]), msg);
+	return WriteTopicBuffer(&(mRTPS->rxTopicBuffers[microRTPS_FindTpbufByTopicID(mRTPS, topicID)]), msg);
 }
 
 unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)

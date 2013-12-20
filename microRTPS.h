@@ -36,34 +36,36 @@
 
 typedef struct smicroRTPS
 {
-	TopicBufferHandle rxTopicBuffers[MAX_TOPICS];
-	TopicBufferHandle txTopicBuffers[MAX_TOPICS];
+	TopicBufferHandle TopicBuffers[MAX_TOPICS];
 	socketListElem* socketList;
 	MsgQueue txMsgQueue;
+	xSemaphoreHandle txSem;
 } microRTPS;
 
 /*
  * \brief Initializes microRTPS structure.
  */
-void microRTPSInit(microRTPS* mRTPS);
+void microRTPS_Init(microRTPS* mRTPS);
+
+void microRTPSRxThread(microRTPS* mRTPS);
 
 /*
- * \brief Copies message to internal data base and notifies sockets that subscribe this topic.
+ * \brief Copies message to internal data base and notifies sockets that subscribe this topic. Queues msg for Tx if forTx is true.
  */
-void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID);
+unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE forTx);
 
-unsigned portBASE_TYPE microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg);
+unsigned portBASE_TYPE microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg, unsigned portBASE_TYPE forTx);
 
 /*
  * \brief Checks if topic is subscribed (if buffer marked with topicID exists).
  */
 unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 
-void microRTPSRegister(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
+void microRTPS_Register(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 
 /*
  * \brief Returns index of topicBuffer that contains corresponding topicID.
  */
-unsigned portBASE_TYPE microRTPS_FindTpbufByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
+unsigned portBASE_TYPE microRTPS_FindTpbufIndexByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
 
 #endif /* MICRORTPS_H_ */

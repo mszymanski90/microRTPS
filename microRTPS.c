@@ -22,55 +22,75 @@
 
 #include "microRTPS.h"
 
-void microRTPSInit(microRTPS* mRTPS)
+void microRTPS_Init(microRTPS* mRTPS)
 {
 	unsigned portBASE_TYPE i;
-	unsigned portBASE_TYPE emptyBufFound;
 
 	for(i=0; i<MAX_TOPICS; i++)
 	{
-		mRTPS->rxTopicBuffers = 0;
+		mRTPS->TopicBuffers[i] = NULL;
 	}
 
-	// for debug purposes
-	mRTPS->topicList[0].subscribersCount = 0;
-	mRTPS->topicList[0].topicID = 1904;
+	mRTPS->socketList = NULL;
+	MsgQueueInit(&mRTPS->txMsgQueue);
 
-
-	emptyBufFound = 0;
-
-	for(i=0; i<MAX_TOPICS; i++)
-	{
-		if(mRTPS->rxTopicBuffers == 0)
-		{
-			emptyBufFound=1;
-			break;
-		}
-	}
-
-	mRTPS->rxTopicBuffers = CreateTopicBuffer(mRTPS->topicList[0].topicID, sizeof(unsigned portBASE_TYPE));
-	mRTPS->topicList[0].tpbuf_index = i;
+	// TODO: correct max count ?
+	mRTPS->txSem = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
 }
 
-void microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID)
+void microRTPSRxThread(microRTPS* mRTPS)
 {
+	MsgAddress msgAddr;
+	void **msgBuf;
+	unsigned portBASE_TYPE msgLength;
 
-	unsigned portBASE_TYPE msgID;
+	while(1)
+	{
+		xSemaphoreTake(mRTPS->txSem,  portMAX_DELAY);
+
+		msgAddr = MsgQueueRead(&mRTPS->txMsgQueue);
+
+		msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.topicID]);
+		msgBuf = GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.topicID], msgAddr.msgID);
+
+		// send function
+
+		MsgDoneReading(mRTPS->TopicBuffers[msgAddr.topicID], msgAddr.msgID);
+	}
+}
+
+unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE forTx)
+{
+	MsgAddress mAddr;
 
 	socketListElem* elem = mRTPS->socketList;
 
-	msgID = microRTPSWriteTpbufByTID(mRTPS, topicID, msgBuf);
+	mAddr.topicID = topicID;
+	mAddr.msgID = microRTPSWriteTpbufByTID(mRTPS, topicID, msgBuf, forTx);
 
-	while(elem != 0)
+	if(mAddr.msgID == TPBUF_LENGTH) return 0;
+
+	while(elem != NULL)
 	{
-		RTPSsocketNewMessageInTopic(elem->container, topicID, msgID);
+		RTPSsocketNewMessageInTopic(elem->container, mAddr.topicID, mAddr.msgID);
 		elem = SLE_Next(elem);
 	}
+
+
+	if(forTx)
+	{
+		MsgQueueWrite(&mRTPS->txMsgQueue, mAddr);
+	}
+
+	return 1;
 }
 
-unsigned portBASE_TYPE microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg)
+unsigned portBASE_TYPE microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg, unsigned portBASE_TYPE forTx)
 {
-	return WriteTopicBuffer(&(mRTPS->rxTopicBuffers[microRTPS_FindTpbufByTopicID(mRTPS, topicID)]), msg);
+	unsigned portBASE_TYPE tpbufID;
+	tpbufID = microRTPS_FindTpbufIndexByTopicID(mRTPS, topicID);
+	if(tpbufID == MAX_TOPICS) return TPBUF_LENGTH;
+	else return WriteTopicBuffer(mRTPS->TopicBuffers[microRTPS_FindTpbufIndexByTopicID(mRTPS, topicID)], msg, 0);
 }
 
 unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
@@ -78,7 +98,7 @@ unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsign
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE tpbufID;
 
-	tpbufID = microRTPS_FindTpbufByTopicID(mRTPS, topicID);
+	tpbufID = microRTPS_FindTpbufIndexByTopicID(mRTPS, topicID);
 
 	// topicID not in database
 	if(tpbufID == MAX_TOPICS)
@@ -86,13 +106,18 @@ unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsign
 		// search for empty slot
 		for(i=0; i<MAX_TOPICS; i++)
 		{
-			if(mRTPS->rxTopicBuffers[i] != 0)
+			if(mRTPS->TopicBuffers[i] == NULL)
 			{
-				if(mRTPS->rxTopicBuffers[i].topicID == 0)
+				/*
+				if(mRTPS->TopicBuffers[i]->topicID == 0)
 				{
 					tpbufID = i;
 					break;
 				}
+				*/
+
+				tpbufID = i;
+				break;
 			}
 		}
 
@@ -104,17 +129,27 @@ unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsign
 		}
 		else
 		{
-			mRTPS->rxTopicBuffers[tpbufID] = CreateTopicBuffer(topicID, msgLength);
+			mRTPS->TopicBuffers[tpbufID] = CreateTopicBuffer(topicID, msgLength);
 		}
 	}
 
-	mRTPS->rxTopicBuffers[tpbufID].subscribersCount++;
+	mRTPS->TopicBuffers[tpbufID]->subscribersCount++;
 	return tpbufID;
 }
 
-void microRTPSRegister(microRTPS* mRTPS, unsigned portBASE_TYPE name)
+void microRTPS_Register(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
 {
-	// send REGISTER frame
+	unsigned portBASE_TYPE i;
+
+	for(i=0; i<MAX_TOPICS; i++)
+	{
+		if(mRTPS->TopicBuffers[i] == NULL)
+		{
+			break;
+		}
+	}
+
+	mRTPS->TopicBuffers[i] = CreateTopicBuffer(topicID, msgLength);
 }
 
 unsigned portBASE_TYPE microRTPS_FindTpbufIndexByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID)
@@ -123,9 +158,12 @@ unsigned portBASE_TYPE microRTPS_FindTpbufIndexByTopicID(microRTPS* mRTPS, unsig
 
 	for(i=0; i<MAX_TOPICS; i++)
 	{
-		if(mRTPS->rxTopicBuffers[i].topicID == topicID)
+		if(mRTPS->TopicBuffers[i] != NULL)
 		{
-			return i;
+			if(mRTPS->TopicBuffers[i]->topicID == topicID)
+			{
+				return i;
+			}
 		}
 	}
 

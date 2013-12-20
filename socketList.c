@@ -20,20 +20,29 @@
 *
 */
 
+#include "socketList.h"
+
 void SLE_Init(socketListElem* elem, void* container)
 {
 	elem->container = container;
-	elem->next = 0;
-	elem->prev = 0;
+	elem->next = NULL;
+	elem->prev = NULL;
 }
 
 void SLE_Push(socketListElem** first, socketListElem* new)
 {
-	(*first)->prev = new;
-	(*first) = new;
+	if((*first) != NULL)
+	{
+		(*first)->prev = new;
+		new->next = (*first);
+	}
+	else
+	{
+		new->next = NULL;
+	}
 
-	new->next = (*first);
-	new->prev = 0;
+	(*first) = new;
+	new->prev = NULL;
 }
 
 socketListElem* SLE_Next(socketListElem* current)
@@ -51,6 +60,6 @@ void SLE_Remove(socketListElem* removed)
 	(removed->next)->prev = (removed->prev);
 	(removed->prev)->next = (removed->next);
 
-	removed->prev = 0;
-	removed->next = 0;
+	removed->prev = NULL;
+	removed->next = NULL;
 }

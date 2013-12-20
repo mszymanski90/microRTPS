@@ -42,7 +42,6 @@ typedef struct sRTPSsocket
 	microRTPS* mRTPS;
 	socketListElem listItem;
 	xSemaphoreHandle semNewMsg;
-	unsigned portBASE_TYPE inProcedure;
 
 	Subscribtion subscribedTopics[MAX_TOPICS];
 	MsgQueue msgQueue;
@@ -52,22 +51,25 @@ typedef struct sRTPSsocket
 /*
  * \brief Searches subscribed topics for matching topicID, new message in socket if success.
  */
-void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
+void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgID);
 
 void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS);
-unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE* topicID);
+unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsigned portBASE_TYPE* topicID);
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID);
 
 /*
  * \brief Adds topic to list of topics subscribed by socket (if TID is known).
  *
  * Note that topicID must be known by the system.
- * \retval 0 success
- * \retval 1 error
+ * \retval 1 success
+ * \retval 0 error
  */
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 
+/*
+ * \brief Registers topic in database. Subscribe and publish can be done only with registered topics.
+ */
 unsigned portBASE_TYPE RTPSsocketRegisterTopic(RTPSsocket* socket, unsigned portBASE_TYPE name);
 
 #endif /* RTPSSOCKET_H_ */

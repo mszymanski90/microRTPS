@@ -32,7 +32,7 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 
 	for(i=0; i<MAX_TOPICS; i++)
 	{
-		if(socket->subscribedTopics[i] == topicID)
+		if(socket->subscribedTopics[i].topicID == topicID)
 		{
 			topicIsSubscribed = 1;
 			break;
@@ -45,7 +45,9 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 		msg_addr.msgID = msgID;
 		msg_addr.topicID = topicID;
 		// push this message into message queue
-		MsgQueueWrite(socket->msgQueue, msg_addr);
+		MsgQueueWrite(&socket->msgQueue, msg_addr);
+
+		xSemaphoreGive(socket->semNewMsg);
 	}
 }
 
@@ -53,7 +55,6 @@ void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS)
 {
 	unsigned portBASE_TYPE i;
 	socket->semNewMsg = xSemaphoreCreateCounting(MSG_QUEUE_LENGTH, 0);
-	socket->inProcedure = 0;
 	socket->mRTPS = mRTPS;
 
 	for(i=0; i<MAX_TOPICS; i++)
@@ -62,41 +63,33 @@ void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS)
 		socket->subscribedTopics[i].tpbufID=MAX_TOPICS;
 	}
 
-	msgQueueInit(&(socket->msgQueue));
+	MsgQueueInit(&(socket->msgQueue));
 
 	SLE_Init(&(socket->listItem), socket);
-	SLE_Push(&(socket->mRTPS->socketList), socket->listItem);
+	SLE_Push(&socket->mRTPS->socketList, &socket->listItem);
 }
 
-unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void* msgBuf, portBASE_TYPE* topicID)
+unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsigned portBASE_TYPE* topicID)
 {
-	MsgDoneReading(socket->mRTPS->rxTopicBuffers[socket->addr.topicID], socket->addr.msgID);
+	MsgDoneReading(socket->mRTPS->TopicBuffers[socket->addr.topicID], socket->addr.msgID);
 
-	if(socket->inProcedure == 1) return 1;
+	xSemaphoreTake(socket->semNewMsg, portMAX_DELAY);
+	socket->addr = MsgQueueRead(&socket->msgQueue);
 
-	xSemaphoreTake(socket->semNewMsg);
-	socket->addr = MsgQueueRead(socket->msgQueue);
+	*topicID = socket->addr.topicID;
+	*msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->TopicBuffers[socket->addr.topicID], socket->addr.msgID);
 
-	topicID = socket->addr.topicID;
-	msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->rxTopicBuffers[socket->addr.topicID], socket->addr.msgID);
-
-	return 0;
+	return 1;
 }
 
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
 	unsigned portBASE_TYPE tpbufID;
-	tpbufID = microRTPS_FindTpbufByTopicID(socket->mRTPS, topicID);
+	unsigned portBASE_TYPE msgID;
+	tpbufID = microRTPS_FindTpbufIndexByTopicID(socket->mRTPS, topicID);
 
-	// what is needed to publish ?
-	// -msgLength
-	// -topicID
-	/*
-	 * 1. Copy msgBuf to TopicBuffer
-	 * 2. Check if any socket subscribes this topic
-	 * 3. Queue msg for sending
-	 */
 
+	microRTPSWrite(socket->mRTPS, msgBuf, topicID, 1);
 }
 
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
@@ -110,16 +103,17 @@ unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned por
 	{
 		for(i=0; i<MAX_TOPICS; i++)
 		{
-			if(socket->subscribedTopics[i] == 0)
+			if(socket->subscribedTopics[i].topicID == 0)
 			{
 				socket->subscribedTopics[i].topicID = topicID;
 				socket->subscribedTopics[i].tpbufID = tpbufID;
+				break;
 			}
 		}
 
-		return 0;
+		return 1;
 	}
-	else return 1;
+	else return 0;
 }
 
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID)

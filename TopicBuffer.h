@@ -23,6 +23,8 @@
 #ifndef TOPICBUFFER_H_
 #define TOPICBUFFER_H_
 
+#include "microRTPS_config.h"
+
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -42,7 +44,7 @@ typedef struct sTopicBuffer
 	unsigned portBASE_TYPE msg_length;
 	unsigned portBASE_TYPE subscribersCount;
 
-	tMsg* messages;
+	tMsg messages;
 	unsigned portBASE_TYPE msgPendingActions[TPBUF_LENGTH];
 
 
@@ -65,6 +67,8 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle);
  */
 tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
 
+unsigned portBASE_TYPE GetMsgLengthFromTopicBuffer(TopicBufferHandle TBHandle);
+
 /*
  * \brief Decrements msgPendingReads, Gives semaphore for writing.
  */
@@ -73,6 +77,16 @@ void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index
 /*
  * \brief Writes to Topic Buffer.
  */
-unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg);
+unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, unsigned portBASE_TYPE forTx);
+
+/*
+ * \brief Increments subscribers count
+ */
+void TB_IncrementSubsCount(TopicBufferHandle TBHandle);
+
+/*
+ * \brief Decrements subscribers count
+ */
+void TB_DecrementSubsCount(TopicBufferHandle TBHandle);
 
 #endif /* TOPICBUFFER_H_ */

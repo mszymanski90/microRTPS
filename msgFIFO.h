@@ -24,6 +24,7 @@
 #define MSGFIFO_H_
 
 #include "microRTPS_config.h"
+#include "FreeRTOS.h"
 
 typedef struct sMsgAddress
 {

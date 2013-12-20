@@ -70,6 +70,11 @@ tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE ms
 unsigned portBASE_TYPE GetMsgLengthFromTopicBuffer(TopicBufferHandle TBHandle);
 
 /*
+ * \brief Returns TopicID.
+ */
+unsigned portBASE_TYPE GetTopicIDFromTopicBuffer(TopicBufferHandle TBHandle);
+
+/*
  * \brief Decrements msgPendingReads, Gives semaphore for writing.
  */
 void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);

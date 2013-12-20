@@ -43,19 +43,21 @@ void microRTPSRxThread(microRTPS* mRTPS)
 	MsgAddress msgAddr;
 	void **msgBuf;
 	unsigned portBASE_TYPE msgLength;
+	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE msgID;
 
 	while(1)
 	{
 		xSemaphoreTake(mRTPS->txSem,  portMAX_DELAY);
 
-		msgAddr = MsgQueueRead(&mRTPS->txMsgQueue);
+		MsgQueueRead(&mRTPS->txMsgQueue, &topicID, &msgID);
 
-		msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.topicID]);
-		msgBuf = GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.topicID], msgAddr.msgID);
+		msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID]);
+		msgBuf = GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
 
 		// send function
 
-		MsgDoneReading(mRTPS->TopicBuffers[msgAddr.topicID], msgAddr.msgID);
+		MsgDoneReading(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
 	}
 }
 
@@ -65,21 +67,22 @@ unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned p
 
 	socketListElem* elem = mRTPS->socketList;
 
-	mAddr.topicID = topicID;
+	mAddr.tpbufID = topicID;
 	mAddr.msgID = microRTPSWriteTpbufByTID(mRTPS, topicID, msgBuf, forTx);
 
 	if(mAddr.msgID == TPBUF_LENGTH) return 0;
+	if(elem == NULL) return 0;
 
 	while(elem != NULL)
 	{
-		RTPSsocketNewMessageInTopic(elem->container, mAddr.topicID, mAddr.msgID);
+		RTPSsocketNewMessageInTopic(elem->container, mAddr.tpbufID, mAddr.msgID);
 		elem = SLE_Next(elem);
 	}
 
 
 	if(forTx)
 	{
-		MsgQueueWrite(&mRTPS->txMsgQueue, mAddr);
+		MsgQueueWrite(&mRTPS->txMsgQueue, mAddr.tpbufID, mAddr.msgID);
 	}
 
 	return 1;

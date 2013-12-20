@@ -28,8 +28,7 @@
 
 typedef struct sMsgAddress
 {
-	// pointer directly to topic buffer element ? accessing should be through topic buffer methods
-	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE tpbufID;
 	unsigned portBASE_TYPE msgID;
 } MsgAddress;
 
@@ -42,7 +41,7 @@ typedef struct sMsgQueue
 } MsgQueue;
 
 void MsgQueueInit(MsgQueue* msgQueue);
-MsgAddress MsgQueueRead(MsgQueue* msgQueue);
-void MsgQueueWrite(MsgQueue* msgQueue, MsgAddress queueElem);
+void MsgQueueRead(MsgQueue* msgQueue, unsigned portBASE_TYPE* tpbufID, unsigned portBASE_TYPE* msgID);
+void MsgQueueWrite(MsgQueue* msgQueue, unsigned portBASE_TYPE tpbufID, unsigned portBASE_TYPE msgID);
 
 #endif /* MSGFIFO_H_ */

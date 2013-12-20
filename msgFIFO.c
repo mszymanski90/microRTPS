@@ -29,20 +29,23 @@ void MsgQueueInit(MsgQueue* msgQueue)
 	msgQueue->out=0;
 }
 
-MsgAddress MsgQueueRead(MsgQueue* msgQueue)
+void MsgQueueRead(MsgQueue* msgQueue, unsigned portBASE_TYPE* tpbufID, unsigned portBASE_TYPE* msgID)
 {
 	msgQueue->out++;
 	if(msgQueue->out >= MSG_QUEUE_LENGTH) msgQueue->out = 0;
 	if(msgQueue->in == msgQueue->out) msgQueue->full = 0;
 
-	return msgQueue->queue[msgQueue->out - 1];
+
+	*tpbufID = msgQueue->queue[msgQueue->out - 1].tpbufID;
+	*msgID = msgQueue->queue[msgQueue->out - 1].msgID;
 }
 
-void MsgQueueWrite(MsgQueue* msgQueue, MsgAddress queueElem)
+void MsgQueueWrite(MsgQueue* msgQueue, unsigned portBASE_TYPE tpbufID, unsigned portBASE_TYPE msgID)
 {
 	if(!msgQueue->full)
 	{
-		msgQueue->queue[msgQueue->in] = queueElem;
+		msgQueue->queue[msgQueue->in].tpbufID = tpbufID;
+		msgQueue->queue[msgQueue->in].msgID = msgID;
 		msgQueue->in++;
 
 		if(msgQueue->in >= MSG_QUEUE_LENGTH) msgQueue->in = 0;

@@ -45,7 +45,9 @@ typedef struct sRTPSsocket
 
 	Subscribtion subscribedTopics[MAX_TOPICS];
 	MsgQueue msgQueue;
-	MsgAddress addr;
+
+	// last read message address
+	MsgAddress last_read;
 } RTPSsocket;
 
 /*

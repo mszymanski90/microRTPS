@@ -26,7 +26,9 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 {
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE topicIsSubscribed;
-	MsgAddress msg_addr;
+
+	unsigned portBASE_TYPE msgID2;
+	unsigned portBASE_TYPE tpbufID;
 
 	topicIsSubscribed = 0;
 
@@ -41,11 +43,8 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 
 	if(topicIsSubscribed)
 	{
-		// TODO: make msg_addr an argument of this function
-		msg_addr.msgID = msgID;
-		msg_addr.tpbufID = socket->subscribedTopics[i].tpbufID;
 		// push this message into message queue
-		MsgQueueWrite(&socket->msgQueue, topicID, msgID);
+		MsgQueueWrite(&socket->msgQueue, socket->subscribedTopics[i].tpbufID, msgID);
 
 		xSemaphoreGive(socket->semNewMsg);
 	}
@@ -56,6 +55,9 @@ void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS)
 	unsigned portBASE_TYPE i;
 	socket->semNewMsg = xSemaphoreCreateCounting(MSG_QUEUE_LENGTH, 0);
 	socket->mRTPS = mRTPS;
+	socket->last_read.msgID=0;
+	socket->last_read.tpbufID=0;
+	socket->startup=1;
 
 	for(i=0; i<MAX_TOPICS; i++)
 	{
@@ -77,11 +79,17 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsi
 	*topicID=0;
 	*msgBuf=NULL;
 
-	if(socket->last_read.tpbufID != MAX_TOPICS)
+	if(socket->startup==1)
 	{
-		MsgDoneReading(socket->mRTPS->TopicBuffers[socket->last_read.tpbufID], socket->last_read.msgID);
+		socket->startup = 0;
 	}
-	else return 0;
+	else
+	{
+		if(socket->last_read.tpbufID != MAX_TOPICS)
+		{
+			MsgDoneReading(socket->mRTPS->TopicBuffers[socket->last_read.tpbufID], socket->last_read.msgID);
+		}
+	}
 
 	xSemaphoreTake(socket->semNewMsg, portMAX_DELAY);
 	MsgQueueRead(&socket->msgQueue, &tpbufID, &msgID);

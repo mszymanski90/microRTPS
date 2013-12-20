@@ -32,6 +32,7 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom->topicID = topicID;
 	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, TPBUF_LENGTH);
 	pom->subscribersCount = 0;
+	pom->msg_length = msg_length;
 
 	return pom;
 }
@@ -75,30 +76,30 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE j;
 
-	unsigned portCHAR *TPbuf;
-	unsigned portCHAR *msgbuf;
+	void* buffer_addr;
 
 	unsigned portBASE_TYPE* m;
 
 	// block if no space in buffer
 	xSemaphoreTake(TBHandle->sem_space_left, portMAX_DELAY);
 
+	if(TBHandle->messages == NULL) return TPBUF_LENGTH;
+
 	for(i=0; i<TPBUF_LENGTH; i++)
 	{
 		if(TBHandle->msgPendingActions[i]<=0)
 		{
-			if(TBHandle->messages == NULL) return TPBUF_LENGTH;
-
-			TPbuf = (unsigned portCHAR *) (TBHandle->messages + i*(TBHandle->msg_length));
-			msgbuf = (unsigned portCHAR *) msg;
+			buffer_addr = (TBHandle->messages + i*(TBHandle->msg_length));
 
 			for(j=0; j<TBHandle->msg_length; j++)
 			{
-				*(TPbuf + j*(sizeof(unsigned portCHAR))) = *(msgbuf + j*(sizeof(unsigned portCHAR)));
+				*((char*) (buffer_addr + j*(sizeof(char)))) = *((char*) (msg + j*(sizeof(char))));
 			}
 
-			m= (unsigned portBASE_TYPE*) (TBHandle->messages + i*(TBHandle->msg_length));
-			if(*m != 1) return TPBUF_LENGTH;
+			//debug
+			m= (unsigned portBASE_TYPE*) (buffer_addr);
+			if(*m != 5) return TPBUF_LENGTH;
+			//debug
 
 			TBHandle->msgPendingActions[i] = TBHandle->subscribersCount;
 

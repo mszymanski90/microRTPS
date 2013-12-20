@@ -24,9 +24,17 @@
 
 void MsgQueueInit(MsgQueue* msgQueue)
 {
+	unsigned portBASE_TYPE i;
+
 	msgQueue->full=0;
 	msgQueue->in=0;
 	msgQueue->out=0;
+
+	for(i=0; i<MSG_QUEUE_LENGTH; i++)
+	{
+		msgQueue->queue[i].msgID=0;
+		msgQueue->queue[i].tpbufID=MAX_TOPICS;
+	}
 }
 
 void MsgQueueRead(MsgQueue* msgQueue, unsigned portBASE_TYPE* tpbufID, unsigned portBASE_TYPE* msgID)
@@ -38,6 +46,10 @@ void MsgQueueRead(MsgQueue* msgQueue, unsigned portBASE_TYPE* tpbufID, unsigned 
 
 	*tpbufID = msgQueue->queue[msgQueue->out - 1].tpbufID;
 	*msgID = msgQueue->queue[msgQueue->out - 1].msgID;
+
+	// if this field is read when no message incoming, this will cause error
+	msgQueue->queue[msgQueue->out - 1].msgID = 0;
+	msgQueue->queue[msgQueue->out - 1].tpbufID = MAX_TOPICS;
 }
 
 void MsgQueueWrite(MsgQueue* msgQueue, unsigned portBASE_TYPE tpbufID, unsigned portBASE_TYPE msgID)

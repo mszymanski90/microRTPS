@@ -48,6 +48,8 @@ typedef struct sRTPSsocket
 
 	// last read message address
 	MsgAddress last_read;
+
+	unsigned portBASE_TYPE startup;
 } RTPSsocket;
 
 /*

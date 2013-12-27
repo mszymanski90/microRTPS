@@ -77,7 +77,7 @@ unsigned portBASE_TYPE GetTopicIDFromTopicBuffer(TopicBufferHandle TBHandle);
 /*
  * \brief Decrements msgPendingReads, Gives semaphore for writing.
  */
-void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
+unsigned portBASE_TYPE MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
 
 /*
  * \brief Writes to Topic Buffer.

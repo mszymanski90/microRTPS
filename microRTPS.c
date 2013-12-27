@@ -48,52 +48,49 @@ void microRTPSRxThread(microRTPS* mRTPS)
 
 	while(1)
 	{
-		xSemaphoreTake(mRTPS->txSem,  portMAX_DELAY);
+		if(xSemaphoreTake(mRTPS->txSem, portMAX_DELAY) == pdTRUE)
+		{
+			MsgQueueRead(&mRTPS->txMsgQueue, &topicID, &msgID);
 
-		MsgQueueRead(&mRTPS->txMsgQueue, &topicID, &msgID);
+			msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID]);
+			msgBuf = GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
 
-		msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID]);
-		msgBuf = GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
+			// send function
 
-		// send function
-
-		MsgDoneReading(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
+			MsgDoneReading(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
+		}
 	}
 }
 
 unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE forTx)
 {
-	MsgAddress mAddr;
+	unsigned portBASE_TYPE tpbufID;
+	unsigned portBASE_TYPE msgID;
 
 	socketListElem* elem = mRTPS->socketList;
 
-	mAddr.tpbufID = topicID;
-	mAddr.msgID = microRTPSWriteTpbufByTID(mRTPS, topicID, msgBuf, forTx);
+	tpbufID = microRTPS_FindTpbufIndexByTopicID(mRTPS, topicID);
 
-	if(mAddr.msgID == TPBUF_LENGTH) return 0;
+	if(tpbufID >= MAX_TOPICS) return 0;
+
+	msgID = WriteTopicBuffer(mRTPS->TopicBuffers[tpbufID], msgBuf, forTx);
+
+	if(msgID >= TPBUF_LENGTH) return 0;
 	if(elem == NULL) return 0;
 
 	while(elem != NULL)
 	{
-		RTPSsocketNewMessageInTopic(elem->container, mAddr.tpbufID, mAddr.msgID);
+		if(!RTPSsocketNewMessageInTopic(elem->container, topicID, msgID)) return 0;
 		elem = SLE_Next(elem);
 	}
 
 
 	if(forTx)
 	{
-		MsgQueueWrite(&mRTPS->txMsgQueue, mAddr.tpbufID, mAddr.msgID);
+		MsgQueueWrite(&mRTPS->txMsgQueue, tpbufID, msgID);
 	}
 
 	return 1;
-}
-
-unsigned portBASE_TYPE microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg, unsigned portBASE_TYPE forTx)
-{
-	unsigned portBASE_TYPE tpbufID;
-	tpbufID = microRTPS_FindTpbufIndexByTopicID(mRTPS, topicID);
-	if(tpbufID == MAX_TOPICS) return TPBUF_LENGTH;
-	else return WriteTopicBuffer(mRTPS->TopicBuffers[microRTPS_FindTpbufIndexByTopicID(mRTPS, topicID)], msg, 0);
 }
 
 unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)

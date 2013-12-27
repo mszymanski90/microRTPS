@@ -22,7 +22,7 @@
 
 #include "RTPSsocket.h"
 
-void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgID)
+unsigned portBASE_TYPE RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgID)
 {
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE topicIsSubscribed;
@@ -46,7 +46,8 @@ void RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned portBASE_TYPE topi
 		// push this message into message queue
 		MsgQueueWrite(&socket->msgQueue, socket->subscribedTopics[i].tpbufID, msgID);
 
-		xSemaphoreGive(socket->semNewMsg);
+		if(xSemaphoreGive(socket->semNewMsg) != pdTRUE) return 0;
+		else return 1;
 	}
 }
 
@@ -85,16 +86,22 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsi
 	}
 	else
 	{
-		if(socket->last_read.tpbufID != MAX_TOPICS)
+		if(socket->last_read.tpbufID < MAX_TOPICS)
 		{
-			MsgDoneReading(socket->mRTPS->TopicBuffers[socket->last_read.tpbufID], socket->last_read.msgID);
+			if(!MsgDoneReading(socket->mRTPS->TopicBuffers[socket->last_read.tpbufID], socket->last_read.msgID))
+			{
+				return 0;
+			}
 		}
+		else return 0;
 	}
 
-	xSemaphoreTake(socket->semNewMsg, portMAX_DELAY);
+	while(xSemaphoreTake(socket->semNewMsg, portMAX_DELAY) != pdTRUE)
+	{;}
+
 	MsgQueueRead(&socket->msgQueue, &tpbufID, &msgID);
 
-	if(tpbufID != MAX_TOPICS)
+	if(tpbufID < MAX_TOPICS && msgID < TPBUF_LENGTH)
 	{
 		*topicID = GetTopicIDFromTopicBuffer(socket->mRTPS->TopicBuffers[tpbufID]);
 		*msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->TopicBuffers[tpbufID], msgID);
@@ -107,10 +114,6 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsi
 		socket->last_read.tpbufID = MAX_TOPICS;
 		return 0;
 	}
-
-	// debug
-	//if(*topicID != 1) return 0;
-	//if(*msgBuf == NULL) return 0;
 
 	return 1;
 }

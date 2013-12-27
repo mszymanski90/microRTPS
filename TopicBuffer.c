@@ -27,7 +27,10 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	TopicBufferHandle pom;
 	portBASE_TYPE i;
 
+	pom = NULL;
 	pom = pvPortMalloc(sizeof(TopicBuffer));
+
+	pom->messages = NULL;
 	pom->messages = pvPortMalloc(TPBUF_LENGTH * msg_length);
 	pom->topicID = topicID;
 	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, TPBUF_LENGTH);
@@ -48,9 +51,7 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
 
 tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
 {
-	unsigned portBASE_TYPE msgLength;
-	msgLength = TBHandle->msg_length;
-	return TBHandle->messages + msg_index*msgLength;
+	return TBHandle->messages + msg_index*TBHandle->msg_length;
 }
 
 unsigned portBASE_TYPE GetMsgLengthFromTopicBuffer(TopicBufferHandle TBHandle)
@@ -63,12 +64,17 @@ unsigned portBASE_TYPE GetTopicIDFromTopicBuffer(TopicBufferHandle TBHandle)
 	return TBHandle->topicID;
 }
 
-void MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
+unsigned portBASE_TYPE MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
 {
 	if(TBHandle->msgPendingActions[msg_index]>0) TBHandle->msgPendingActions[msg_index]--;
 
 	// all subscribing apps have read this message; this slot is now avaible for writing
-	if(TBHandle->msgPendingActions[msg_index]==0) xSemaphoreGive(TBHandle->sem_space_left);
+	if(TBHandle->msgPendingActions[msg_index]==0)
+	{
+			if(xSemaphoreGive(TBHandle->sem_space_left) != pdTRUE) return 0;
+	}
+
+	return 1;
 }
 
 unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, unsigned portBASE_TYPE forTx)
@@ -81,8 +87,10 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 	unsigned portBASE_TYPE* m;
 
 	// block if no space in buffer
-	xSemaphoreTake(TBHandle->sem_space_left, portMAX_DELAY);
+	while(xSemaphoreTake(TBHandle->sem_space_left, portMAX_DELAY) != pdTRUE)
+	{;}
 
+	// debug
 	if(TBHandle->messages == NULL) return TPBUF_LENGTH;
 
 	for(i=0; i<TPBUF_LENGTH; i++)
@@ -95,11 +103,6 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 			{
 				*((char*) (buffer_addr + j*(sizeof(char)))) = *((char*) (msg + j*(sizeof(char))));
 			}
-
-			//debug
-			m= (unsigned portBASE_TYPE*) (buffer_addr);
-			if(*m != 5) return TPBUF_LENGTH;
-			//debug
 
 			TBHandle->msgPendingActions[i] = TBHandle->subscribersCount;
 

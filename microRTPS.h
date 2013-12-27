@@ -54,8 +54,6 @@ void microRTPSRxThread(microRTPS* mRTPS);
  */
 unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE forTx);
 
-unsigned portBASE_TYPE microRTPSWriteTpbufByTID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, tMsg msg, unsigned portBASE_TYPE forTx);
-
 /*
  * \brief Checks if topic is subscribed (if buffer marked with topicID exists).
  */

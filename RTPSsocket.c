@@ -104,7 +104,7 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsi
 	if(tpbufID < MAX_TOPICS && msgID < TPBUF_LENGTH)
 	{
 		*topicID = GetTopicIDFromTopicBuffer(socket->mRTPS->TopicBuffers[tpbufID]);
-		*msgBuf = GetMsgFromTopicBuffer(socket->mRTPS->TopicBuffers[tpbufID], msgID);
+		GetMsgFromTopicBuffer(socket->mRTPS->TopicBuffers[tpbufID], msgID, msgBuf);
 
 		socket->last_read.tpbufID = tpbufID;
 		socket->last_read.msgID = msgID;

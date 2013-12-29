@@ -35,32 +35,46 @@ void MsgQueueInit(MsgQueue* msgQueue)
 		msgQueue->queue[i].msgID=0;
 		msgQueue->queue[i].tpbufID=MAX_TOPICS;
 	}
+
+	msgQueue->mutex = xSemaphoreCreateMutex();
 }
 
 void MsgQueueRead(MsgQueue* msgQueue, unsigned portBASE_TYPE* tpbufID, unsigned portBASE_TYPE* msgID)
 {
-	*tpbufID = msgQueue->queue[msgQueue->out].tpbufID;
-	*msgID = msgQueue->queue[msgQueue->out].msgID;
+	if(xSemaphoreTake(msgQueue->mutex, portMAX_DELAY) == pdTRUE)
+	{
+		*tpbufID = msgQueue->queue[msgQueue->out].tpbufID;
+		*msgID = msgQueue->queue[msgQueue->out].msgID;
 
-	// if this field is read when no message incoming, this will cause error
-	msgQueue->queue[msgQueue->out].msgID = 0;
-	msgQueue->queue[msgQueue->out].tpbufID = MAX_TOPICS;
+		// if this field is read when no message incoming, this will cause error
+		msgQueue->queue[msgQueue->out].msgID = 0;
+		msgQueue->queue[msgQueue->out].tpbufID = MAX_TOPICS;
 
-	msgQueue->out++;
-	if(msgQueue->out >= MSG_QUEUE_LENGTH) msgQueue->out = 0;
-	if(msgQueue->in == msgQueue->out) msgQueue->full = 0;
+		msgQueue->out++;
+		if(msgQueue->out >= MSG_QUEUE_LENGTH) msgQueue->out = 0;
+		if(msgQueue->in == msgQueue->out) msgQueue->full = 0;
+
+		xSemaphoreGive(msgQueue->mutex);
+	}
+	// else error
 }
 
 void MsgQueueWrite(MsgQueue* msgQueue, unsigned portBASE_TYPE tpbufID, unsigned portBASE_TYPE msgID)
 {
-	if(!msgQueue->full)
+	if(xSemaphoreTake(msgQueue->mutex, portMAX_DELAY) == pdTRUE)
 	{
-		msgQueue->queue[msgQueue->in].tpbufID = tpbufID;
-		msgQueue->queue[msgQueue->in].msgID = msgID;
+		if(!msgQueue->full)
+		{
+			msgQueue->queue[msgQueue->in].tpbufID = tpbufID;
+			msgQueue->queue[msgQueue->in].msgID = msgID;
 
-		msgQueue->in++;
-		if(msgQueue->in >= MSG_QUEUE_LENGTH) msgQueue->in = 0;
-		if(msgQueue->in == msgQueue->out) msgQueue->full = 1;
+			msgQueue->in++;
+			if(msgQueue->in >= MSG_QUEUE_LENGTH) msgQueue->in = 0;
+			if(msgQueue->in == msgQueue->out) msgQueue->full = 1;
+		}
+
+		xSemaphoreGive(msgQueue->mutex);
 	}
+	// else error
 }
 

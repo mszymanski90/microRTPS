@@ -66,7 +66,7 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle);
  *
  * last_read_index- index of last read message in buffer,
  */
-tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index);
+void GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index, tMsg* msgBuf);
 
 unsigned portBASE_TYPE GetMsgLengthFromTopicBuffer(TopicBufferHandle TBHandle);
 

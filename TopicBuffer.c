@@ -50,9 +50,15 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
 	return 0;
 }
 
-tMsg GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
+void GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index, tMsg* msgBuf)
 {
-	return TBHandle->messages + msg_index*TBHandle->msg_length;
+	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
+	{
+		*msgBuf = TBHandle->messages + msg_index*TBHandle->msg_length;
+
+		xSemaphoreGive(TBHandle->mutex);
+	}
+	// else error
 }
 
 unsigned portBASE_TYPE GetMsgLengthFromTopicBuffer(TopicBufferHandle TBHandle)
@@ -67,15 +73,20 @@ unsigned portBASE_TYPE GetTopicIDFromTopicBuffer(TopicBufferHandle TBHandle)
 
 unsigned portBASE_TYPE MsgDoneReading(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index)
 {
-	if(TBHandle->msgPendingActions[msg_index]>0) TBHandle->msgPendingActions[msg_index]--;
-
-	// all subscribing apps have read this message; this slot is now avaible for writing
-	if(TBHandle->msgPendingActions[msg_index]==0)
+	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
 	{
-			if(xSemaphoreGive(TBHandle->sem_space_left) != pdTRUE) return 0;
-	}
+		if(TBHandle->msgPendingActions[msg_index]>0) TBHandle->msgPendingActions[msg_index]--;
 
-	return 1;
+		// all subscribing apps have read this message; this slot is now avaible for writing
+		if(TBHandle->msgPendingActions[msg_index]==0)
+		{
+				if(xSemaphoreGive(TBHandle->sem_space_left) != pdTRUE) return 0;
+		}
+
+		xSemaphoreGive(TBHandle->mutex);
+		return 1;
+	}
+	else return 0;
 }
 
 unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, unsigned portBASE_TYPE forTx)
@@ -95,8 +106,12 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
 	{
 
-		// debug
-		if(TBHandle->messages == NULL) return TPBUF_LENGTH;
+		// debug delete this later
+		if(TBHandle->messages == NULL)
+		{
+			xSemaphoreGive(TBHandle->mutex);
+			return TPBUF_LENGTH;
+		}
 
 		for(i=0; i<TPBUF_LENGTH; i++)
 		{

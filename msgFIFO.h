@@ -25,6 +25,7 @@
 
 #include "microRTPS_config.h"
 #include "FreeRTOS.h"
+#include "semphr.h"
 
 typedef struct sMsgAddress
 {
@@ -38,6 +39,7 @@ typedef struct sMsgQueue
 	unsigned portBASE_TYPE full;
 	unsigned portBASE_TYPE in;
 	unsigned portBASE_TYPE out;
+	xSemaphoreHandle mutex;
 } MsgQueue;
 
 void MsgQueueInit(MsgQueue* msgQueue);

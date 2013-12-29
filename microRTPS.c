@@ -41,7 +41,7 @@ void microRTPS_Init(microRTPS* mRTPS)
 void microRTPSRxThread(microRTPS* mRTPS)
 {
 	MsgAddress msgAddr;
-	void **msgBuf;
+	void* msgBuf;
 	unsigned portBASE_TYPE msgLength;
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE msgID;
@@ -53,9 +53,10 @@ void microRTPSRxThread(microRTPS* mRTPS)
 			MsgQueueRead(&mRTPS->txMsgQueue, &topicID, &msgID);
 
 			msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID]);
-			msgBuf = GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
+			GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID, &msgBuf);
 
 			// send function
+			//
 
 			MsgDoneReading(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
 		}

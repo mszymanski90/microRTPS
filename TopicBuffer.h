@@ -49,6 +49,7 @@ typedef struct sTopicBuffer
 
 
 	xSemaphoreHandle sem_space_left;
+	xSemaphoreHandle mutex;
 } TopicBuffer;
 
 typedef TopicBuffer* TopicBufferHandle;

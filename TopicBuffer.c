@@ -34,6 +34,7 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom->messages = pvPortMalloc(TPBUF_LENGTH * msg_length);
 	pom->topicID = topicID;
 	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, TPBUF_LENGTH);
+	pom->mutex = xSemaphoreCreateMutex();
 	pom->subscribersCount = 0;
 	pom->msg_length = msg_length;
 
@@ -90,27 +91,36 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 	while(xSemaphoreTake(TBHandle->sem_space_left, portMAX_DELAY) != pdTRUE)
 	{;}
 
-	// debug
-	if(TBHandle->messages == NULL) return TPBUF_LENGTH;
-
-	for(i=0; i<TPBUF_LENGTH; i++)
+	// make sure no one else is writing or reading from tpbuf
+	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
 	{
-		if(TBHandle->msgPendingActions[i]<=0)
+
+		// debug
+		if(TBHandle->messages == NULL) return TPBUF_LENGTH;
+
+		for(i=0; i<TPBUF_LENGTH; i++)
 		{
-			buffer_addr = (TBHandle->messages + i*(TBHandle->msg_length));
-
-			for(j=0; j<TBHandle->msg_length; j++)
+			if(TBHandle->msgPendingActions[i]<=0)
 			{
-				*((char*) (buffer_addr + j*(sizeof(char)))) = *((char*) (msg + j*(sizeof(char))));
+				buffer_addr = (TBHandle->messages + i*(TBHandle->msg_length));
+
+				for(j=0; j<TBHandle->msg_length; j++)
+				{
+					*((char*) (buffer_addr + j*(sizeof(char)))) = *((char*) (msg + j*(sizeof(char))));
+				}
+
+				TBHandle->msgPendingActions[i] = TBHandle->subscribersCount;
+
+				// if message is to be transmitted, then there is one read more
+				if(forTx) TBHandle->msgPendingActions[i]++;
+
+				xSemaphoreGive(TBHandle->mutex);
+
+				return i;
 			}
-
-			TBHandle->msgPendingActions[i] = TBHandle->subscribersCount;
-
-			// if message is to be transmitted, then there is one read more
-			if(forTx) TBHandle->msgPendingActions[i]++;
-
-			return i;
 		}
+
+		xSemaphoreGive(TBHandle->mutex);
 	}
 
 	// error ??

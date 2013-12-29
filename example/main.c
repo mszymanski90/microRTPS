@@ -514,14 +514,14 @@ void vREADTask2( void *pvParameters )
 	sprintf(xR.msg, "RECV2    ");
 	sprintf(xr.msg, "recv2    ");
 
-	if(RTPSsocketSubscribeByTID(&socket1, 1, sizeof(Msg)))
+	if(RTPSsocketSubscribeByTID(&socket2, 1, sizeof(Msg)))
 	{
 		xQueueSendToBack(xOLEDQueue, &xS, (portTickType) 0);
 	}
 
 	for(;;)
 	{
-		if(RTPSsocketReceive(&socket1, (void**) &buffer, &topicID))
+		if(RTPSsocketReceive(&socket2, (void**) &buffer, &topicID))
 		{
 			xr.msg[6] = ((countr/10) % 10) +48;
 			xr.msg[7] = (countr % 10) +48;

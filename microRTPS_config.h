@@ -26,7 +26,7 @@
 // user settings
 #define MAX_TOPICS 4
 // recommended minimum is 2
-#define TPBUF_LENGTH 2
+#define TPBUF_LENGTH 1
 #define MAX_APPS 2
 
 //

@@ -129,12 +129,13 @@ unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsign
 		{
 			tpbufID = i;
 			mRTPS->TopicBuffers[tpbufID] = CreateTopicBuffer(topicID, msgLength);
-
-			if(mRTPS->TopicBuffers[tpbufID] == NULL) return MAX_TOPICS; // error
 		}
 	}
 
+	if(mRTPS->TopicBuffers[tpbufID] == NULL) return MAX_TOPICS; // error
+
 	mRTPS->TopicBuffers[tpbufID]->subscribersCount++;
+
 	return tpbufID;
 }
 

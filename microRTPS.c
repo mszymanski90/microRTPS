@@ -38,13 +38,16 @@ void microRTPS_Init(microRTPS* mRTPS)
 	mRTPS->txSem = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
 }
 
-void microRTPSRxThread(microRTPS* mRTPS)
+void microRTPSRxTask(void *pvParameters)
 {
+	microRTPS* mRTPS;
 	MsgAddress msgAddr;
 	void* msgBuf;
 	unsigned portBASE_TYPE msgLength;
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE msgID;
+
+	mRTPS = (microRTPS*) pvParameters;
 
 	while(1)
 	{

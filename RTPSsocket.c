@@ -120,11 +120,6 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsi
 
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
-	unsigned portBASE_TYPE tpbufID;
-	unsigned portBASE_TYPE msgID;
-	tpbufID = microRTPS_FindTpbufIndexByTopicID(socket->mRTPS, topicID);
-
-
 	microRTPSWrite(socket->mRTPS, msgBuf, topicID, 1);
 }
 

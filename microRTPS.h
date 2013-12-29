@@ -47,7 +47,7 @@ typedef struct smicroRTPS
  */
 void microRTPS_Init(microRTPS* mRTPS);
 
-void microRTPSRxThread(microRTPS* mRTPS);
+void microRTPSRxTask(void *pvParameters);
 
 /*
  * \brief Copies message to internal data base and notifies sockets that subscribe this topic. Queues msg for Tx if forTx is true.

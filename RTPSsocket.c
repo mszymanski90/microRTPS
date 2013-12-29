@@ -49,6 +49,7 @@ unsigned portBASE_TYPE RTPSsocketNewMessageInTopic(RTPSsocket* socket, unsigned 
 		if(xSemaphoreGive(socket->semNewMsg) != pdTRUE) return 0;
 		else return 1;
 	}
+	else return 1;
 }
 
 void RTPSsocketInit(RTPSsocket* socket, microRTPS* mRTPS)
@@ -138,11 +139,9 @@ unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned por
 			{
 				socket->subscribedTopics[i].topicID = topicID;
 				socket->subscribedTopics[i].tpbufID = tpbufID;
-				break;
+				return 1;
 			}
 		}
-
-		return 1;
 	}
 	else return 0;
 }

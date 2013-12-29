@@ -25,10 +25,10 @@
 TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msg_length)
 {
 	TopicBufferHandle pom;
-	portBASE_TYPE i;
+	unsigned portBASE_TYPE i;
 
 	pom = NULL;
-	pom = pvPortMalloc(sizeof(TopicBuffer));
+	pom = (TopicBufferHandle) pvPortMalloc(sizeof(TopicBuffer));
 
 	pom->messages = NULL;
 	pom->messages = pvPortMalloc(TPBUF_LENGTH * msg_length);
@@ -38,7 +38,13 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom->subscribersCount = 0;
 	pom->msg_length = msg_length;
 
-	return pom;
+	for(i=0; i<TPBUF_LENGTH; i++)
+	{
+		pom->msgPendingActions[i] = 0;
+	}
+
+	if(pom->sem_space_left != NULL && pom->mutex && pom->messages != NULL) return pom;
+	else return NULL;
 }
 
 portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
@@ -80,7 +86,11 @@ unsigned portBASE_TYPE MsgDoneReading(TopicBufferHandle TBHandle, unsigned portB
 		// all subscribing apps have read this message; this slot is now avaible for writing
 		if(TBHandle->msgPendingActions[msg_index]==0)
 		{
-				if(xSemaphoreGive(TBHandle->sem_space_left) != pdTRUE) return 0;
+				if(xSemaphoreGive(TBHandle->sem_space_left) != pdTRUE)
+				{
+					xSemaphoreGive(TBHandle->mutex);
+					return 0;
+				}
 		}
 
 		xSemaphoreGive(TBHandle->mutex);
@@ -96,7 +106,7 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 
 	void* buffer_addr;
 
-	unsigned portBASE_TYPE* m;
+
 
 	// block if no space in buffer
 	while(xSemaphoreTake(TBHandle->sem_space_left, portMAX_DELAY) != pdTRUE)
@@ -105,7 +115,6 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 	// make sure no one else is writing or reading from tpbuf
 	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
 	{
-
 		// debug delete this later
 		if(TBHandle->messages == NULL)
 		{

@@ -242,6 +242,12 @@ microRTPS mRTPS;
 RTPSsocket socket1;
 RTPSsocket socket2;
 
+typedef struct sMsg
+{
+	unsigned portBASE_TYPE num1;
+	signed portCHAR num2;
+} Msg;
+
 /* The welcome text. */
 const portCHAR * const pcWelcomeMessage = "   www.FreeRTOS.org";
 
@@ -404,17 +410,13 @@ void vApplicationTickHook( void )
 void vWRITETask( void *pvParameters )
 {
 	xOLEDMessage xW;
-	unsigned portBASE_TYPE ms;
+	Msg ms;
 	const portTickType xDelay = 2000 / portTICK_RATE_MS;
-	MsgAddress maddr;
-	unsigned portBASE_TYPE toggle;
 	unsigned portBASE_TYPE count;
 
-	maddr.msgID=1;
-	maddr.tpbufID=1;
+	ms.num1 = 5;
+	ms.num2 = -3;
 
-	toggle = 1;
-	ms = 5;
 	count = 0;
 
 	sprintf(xW.msg, "WRITE    ");
@@ -424,7 +426,7 @@ void vWRITETask( void *pvParameters )
 	for(;;)
 	{
 
-		if(microRTPSWrite(&mRTPS, &ms, 1, 0))
+		if(microRTPSWrite(&mRTPS, (void *) &ms, 1, 0))
 		{
 			xW.msg[6] = ((count/10) % 10) +48;
 			xW.msg[7] = (count % 10) +48;
@@ -438,8 +440,7 @@ void vWRITETask( void *pvParameters )
 void vREADTask1( void *pvParameters )
 {
 	const portTickType xDelay = 2000 / portTICK_RATE_MS;
-	void* buffer;
-	unsigned portBASE_TYPE ms;
+	Msg* buffer;
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE count;
 	unsigned portBASE_TYPE countr;
@@ -456,14 +457,14 @@ void vREADTask1( void *pvParameters )
 	sprintf(xR.msg, "RECV1    ");
 	sprintf(xr.msg, "recv1    ");
 
-	if(RTPSsocketSubscribeByTID(&socket1, 1, sizeof(ms)))
+	if(RTPSsocketSubscribeByTID(&socket1, 1, sizeof(Msg)))
 	{
 		xQueueSendToBack(xOLEDQueue, &xS, (portTickType) 0);
 	}
 
 	for(;;)
 	{
-		if(RTPSsocketReceive(&socket1, &buffer, &topicID))
+		if(RTPSsocketReceive(&socket1, (void**) &buffer, &topicID))
 		{
 			xr.msg[6] = ((countr/10) % 10) +48;
 			xr.msg[7] = (countr % 10) +48;
@@ -471,19 +472,17 @@ void vREADTask1( void *pvParameters )
 
 			//xQueueSendToBack(xOLEDQueue, &xr, (portTickType) 0);
 
-			ms = *((unsigned portBASE_TYPE*) buffer);
 			if(topicID == 1)
 			{
 				if(buffer != NULL)
 				{
-					if(ms == 5)
+					if(buffer->num1 == 5 && buffer->num2 == -3)
 					{
 						xR.msg[6] = ((count/10) % 10) +48;
 						xR.msg[7] = (count % 10) +48;
 						count++;
 
 						xQueueSendToBack(xOLEDQueue, &xR, (portTickType) 0);
-						ms = 2;
 						buffer = NULL;
 					}
 				}
@@ -498,8 +497,7 @@ void vREADTask1( void *pvParameters )
 void vREADTask2( void *pvParameters )
 {
 	const portTickType xDelay = 2000 / portTICK_RATE_MS;
-	void* buffer;
-	unsigned portBASE_TYPE ms;
+	Msg* buffer;
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE count;
 	unsigned portBASE_TYPE countr;
@@ -516,14 +514,14 @@ void vREADTask2( void *pvParameters )
 	sprintf(xR.msg, "RECV2    ");
 	sprintf(xr.msg, "recv2    ");
 
-	if(RTPSsocketSubscribeByTID(&socket2, 1, sizeof(ms)))
+	if(RTPSsocketSubscribeByTID(&socket1, 1, sizeof(Msg)))
 	{
 		xQueueSendToBack(xOLEDQueue, &xS, (portTickType) 0);
 	}
 
 	for(;;)
 	{
-		if(RTPSsocketReceive(&socket2, &buffer, &topicID))
+		if(RTPSsocketReceive(&socket1, (void**) &buffer, &topicID))
 		{
 			xr.msg[6] = ((countr/10) % 10) +48;
 			xr.msg[7] = (countr % 10) +48;
@@ -531,19 +529,17 @@ void vREADTask2( void *pvParameters )
 
 			//xQueueSendToBack(xOLEDQueue, &xr, (portTickType) 0);
 
-			ms = *((unsigned portBASE_TYPE*) buffer);
 			if(topicID == 1)
 			{
 				if(buffer != NULL)
 				{
-					if(ms == 5)
+					if(buffer->num1 == 5 && buffer->num2 == -3)
 					{
 						xR.msg[6] = ((count/10) % 10) +48;
 						xR.msg[7] = (count % 10) +48;
 						count++;
 
 						xQueueSendToBack(xOLEDQueue, &xR, (portTickType) 0);
-						ms = 2;
 						buffer = NULL;
 					}
 				}

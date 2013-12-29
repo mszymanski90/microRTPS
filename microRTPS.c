@@ -84,7 +84,10 @@ unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned p
 
 	while(elem != NULL)
 	{
-		if(!RTPSsocketNewMessageInTopic(elem->container, topicID, msgID)) return 0;
+		if(!RTPSsocketNewMessageInTopic(elem->container, topicID, msgID))
+		{
+			return 0;
+		}
 		elem = SLE_Next(elem);
 	}
 
@@ -112,28 +115,22 @@ unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsign
 		{
 			if(mRTPS->TopicBuffers[i] == NULL)
 			{
-				/*
-				if(mRTPS->TopicBuffers[i]->topicID == 0)
-				{
-					tpbufID = i;
-					break;
-				}
-				*/
-
-				tpbufID = i;
 				break;
 			}
 		}
 
 
-		if(tpbufID == MAX_TOPICS)
+		if(i == MAX_TOPICS)
 		{
 			// error: no space left
 			return MAX_TOPICS;
 		}
 		else
 		{
+			tpbufID = i;
 			mRTPS->TopicBuffers[tpbufID] = CreateTopicBuffer(topicID, msgLength);
+
+			if(mRTPS->TopicBuffers[tpbufID] == NULL) return MAX_TOPICS; // error
 		}
 	}
 

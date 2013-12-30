@@ -127,21 +127,29 @@ unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsig
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
 {
 	unsigned portBASE_TYPE i;
+	unsigned portBASE_TYPE space;
 	unsigned portBASE_TYPE tpbufID;
+
+	for(i=0; i<MAX_TOPICS; i++)
+	{
+		if(socket->subscribedTopics[i].topicID == 0)
+		{
+			space = i;
+		}
+
+		if(socket->subscribedTopics[i].topicID == topicID)
+		{
+			return 0; // topic already subscribed by this socket
+		}
+	}
 
 	tpbufID = microRTPSAssertTopicIsSubscribed(socket->mRTPS, topicID, msgLength);
 
-	if(tpbufID < MAX_TOPICS)
+	if(tpbufID < MAX_TOPICS && space < MAX_TOPICS)
 	{
-		for(i=0; i<MAX_TOPICS; i++)
-		{
-			if(socket->subscribedTopics[i].topicID == 0)
-			{
-				socket->subscribedTopics[i].topicID = topicID;
-				socket->subscribedTopics[i].tpbufID = tpbufID;
-				return 1;
-			}
-		}
+		socket->subscribedTopics[space].topicID = topicID;
+		socket->subscribedTopics[space].tpbufID = tpbufID;
+		return 1;
 	}
 	else return 0;
 }

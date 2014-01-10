@@ -64,6 +64,7 @@ DEMO_INCLUDE_DIR=../../../FreeRTOS/Common/include
 UIP_COMMON_DIR=../../../FreeRTOS/Common/ethernet/uIP/uip-1.0/uip
 LUMINARY_DRIVER_DIR=../../../FreeRTOS/Common/drivers/LuminaryMicro
 MICRORTPS_DIR=..
+RTNET_DIR=../RTnet
 
 OUTPUT_NAME=microRTPS_example
 
@@ -115,11 +116,29 @@ SOURCE=	main.c \
 		$(RTOS_SOURCE_DIR)/tasks.c \
 		$(RTOS_SOURCE_DIR)/portable/GCC/ARM_CM3/port.c \
 		$(RTOS_SOURCE_DIR)/portable/MemMang/heap_4.c \
+		$(RTNET_DIR)/rtarp.c \
+		$(RTNET_DIR)/rtcfg.c \
+		$(RTNET_DIR)/rtipv4.c \
+		$(RTNET_DIR)/rtmac.c \
+		$(RTNET_DIR)/rtnet_common.c \
+		$(RTNET_DIR)/rtnet.c \
+		$(RTNET_DIR)/rtnetDev.c \
+		$(RTNET_DIR)/rtsocket.c \
+		$(RTNET_DIR)/rtudp.c \
+		$(RTNET_DIR)/tdma.c \
+		$(RTNET_DIR)/tdmaCfg.c \
+		$(RTNET_DIR)/portable/HalRTcfg/halRTcfg.c \
+		$(RTNET_DIR)/portable/inet/CCS/ARM_CM3/rtnet_inet.c \
+		$(RTNET_DIR)/portable/inet/CCS/ARM_CM3/rtnet_swap.asm \
+		$(RTNET_DIR)/portable/mem/rtbuf.c \
+		$(RTNET_DIR)/portable/mem/rtnet_mem.c \
+		$(RTNET_DIR)/portable/NetworkInterface/lm3s6xxx/halNetworkInterface.c \
+		$(RTNET_DIR)/portable/TimerInterface/lm3s6xxx/halTimerInterface.c \
 		$(MICRORTPS_DIR)/RTPSsocket.c \
 		$(MICRORTPS_DIR)/socketList.c \
 		$(MICRORTPS_DIR)/msgFIFO.c \
 		$(MICRORTPS_DIR)/microRTPS.c \
-		$(MICRORTPS_DIR)/TopicBuffer.c
+		$(MICRORTPS_DIR)/TopicBuffer.c \
 
 LIBS= $(LUMINARY_DRIVER_DIR)/arm-none-eabi-gcc/libdriver.a $(LUMINARY_DRIVER_DIR)/arm-none-eabi-gcc/libgr.a
 

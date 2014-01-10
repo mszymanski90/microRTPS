@@ -28,10 +28,13 @@
 #include "queue.h"
 #include "semphr.h"
 
+#include "rtnet.h"
+
 #include "microRTPS_config.h"
 #include "TopicBuffer.h"
 #include "socketList.h"
 #include "msgFIFO.h"
+#include "protocol.h"
 
 
 typedef struct smicroRTPS
@@ -40,6 +43,9 @@ typedef struct smicroRTPS
 	socketListElem* socketList;
 	MsgQueue txMsgQueue;
 	xSemaphoreHandle txSem;
+
+	xRTnetSocket_t RTnetSocket;
+	xRTnetSockAddr_t broadcastAddr;
 } microRTPS;
 
 /*
@@ -48,6 +54,7 @@ typedef struct smicroRTPS
 void microRTPS_Init(microRTPS* mRTPS);
 
 void microRTPSRxTask(void *pvParameters);
+void microRTPSTxTask(void *pvParameters);
 
 /*
  * \brief Copies message to internal data base and notifies sockets that subscribe this topic. Queues msg for Tx if forTx is true.

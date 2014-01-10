@@ -36,13 +36,60 @@ void microRTPS_Init(microRTPS* mRTPS)
 
 	// TODO: correct max count ?
 	mRTPS->txSem = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
+
+	mRTPS->RTnetSocket = xRTnetSocket(RTNET_AF_INET, RTNET_SOCK_DGRAM, RTNET_IPPROTO_UDP);
+	// TODO: make broadcast address a parameter
+	mRTPS->broadcastAddr.sin_addr = RTNET_IP_BROADCAST;
+	// TODO: make port a parameter
+	mRTPS->broadcastAddr.sin_port = RTNET_IPPROTO_UDP;
+	xRTnetBind(mRTPS->RTnetSocket, &(mRTPS->broadcastAddr), 0);
 }
 
 void microRTPSRxTask(void *pvParameters)
 {
 	microRTPS* mRTPS;
+	data_frame* msgBuf;
+	unsigned portBASE_TYPE topicID;
+	int32_t frameLength;
+
+	mRTPS = (microRTPS*) pvParameters;
+
+	while(1)
+	{
+		frameLength = lRTnetRecvfrom(mRTPS->RTnetSocket,
+		                       	   	   &msgBuf,
+		                       	   	   size_t            xLen,
+		                       	   	   RTNET_ZERO_COPY,
+		                       	   	   NULL,
+		                       	   	   NULL);
+
+		if(msgBuf->header->protocolID == PROTO_ID) // protocol OK
+			if(msgBuf->header->version == PROTO_VERSION) // version OK
+				{
+					switch(msgBuf->header->frameType)
+					{
+						case FRAME_PUB:
+						{
+							microRTPSWrite(mRTPS, &(msgBuf->data), (unsigned portBASE_TYPE) topicID, 0);
+							vRTnetReleaseUdpDataBuffer(msgBuf);
+							break;
+						}
+						default:
+						{
+							break;
+						}
+					}
+				}
+	}
+
+}
+
+void microRTPSTxTask(void *pvParameters)
+{
+	microRTPS* mRTPS;
 	MsgAddress msgAddr;
 	void* msgBuf;
+
 	unsigned portBASE_TYPE msgLength;
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE msgID;
@@ -58,8 +105,12 @@ void microRTPSRxTask(void *pvParameters)
 			msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID]);
 			GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID, &msgBuf);
 
-			// TODO: send function
-			//
+			lRTnetSendto(	mRTPS->RTnetSocket,
+							msgBuf,
+							msgLength,
+							0,
+							&broadcastAddr,
+							0	);
 
 			MsgDoneReading(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
 		}

@@ -159,5 +159,6 @@ void TB_IncrementSubsCount(TopicBufferHandle TBHandle)
 
 void TB_DecrementSubsCount(TopicBufferHandle TBHandle)
 {
+	// if subscribersCount && publishersCount both reach zero, delete buffer
 	TBHandle->subscribersCount--;
 }

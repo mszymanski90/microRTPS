@@ -167,9 +167,12 @@ unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned p
 
 			socket->subscribedTopics[i].topicID = 0;
 			socket->subscribedTopics[i].tpbufID = MAX_TOPICS;
+
+			return 1;
 		}
 	}
 
+	return 0;
 }
 
 unsigned portBASE_TYPE RTPSsocketRegisterPublisherByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)

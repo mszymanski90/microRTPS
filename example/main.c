@@ -502,8 +502,9 @@ void vREADTask2( void *pvParameters )
 	unsigned portBASE_TYPE count;
 	unsigned portBASE_TYPE countr;
 	xOLEDMessage xS;
+	xOLEDMessage xU;
 	xOLEDMessage xR;
-	xOLEDMessage xr;
+	//xOLEDMessage xr;
 
 	buffer = NULL;
 	topicID = 1;
@@ -511,8 +512,9 @@ void vREADTask2( void *pvParameters )
 	countr = 0;
 
 	sprintf(xS.msg, "SUB2");
+	sprintf(xU.msg, "UNSUB2");
 	sprintf(xR.msg, "RECV2    ");
-	sprintf(xr.msg, "recv2    ");
+	//sprintf(xr.msg, "recv2    ");
 
 	if(RTPSsocketSubscribeByTID(&socket2, 1, sizeof(Msg)))
 	{
@@ -523,9 +525,9 @@ void vREADTask2( void *pvParameters )
 	{
 		if(RTPSsocketReceive(&socket2, (void**) &buffer, &topicID))
 		{
-			xr.msg[6] = ((countr/10) % 10) +48;
-			xr.msg[7] = (countr % 10) +48;
-			countr++;
+			//xr.msg[6] = ((countr/10) % 10) +48;
+			//xr.msg[7] = (countr % 10) +48;
+			//countr++;
 
 			//xQueueSendToBack(xOLEDQueue, &xr, (portTickType) 0);
 
@@ -546,7 +548,11 @@ void vREADTask2( void *pvParameters )
 				topicID=5;
 			}
 
-			if(count >= 24) RTPSsocketUnsubscribeByTID(&socket2, 1);
+			if(count >= 24)
+			{
+				RTPSsocketUnsubscribeByTID(&socket2, 1);
+				xQueueSendToBack(xOLEDQueue, &xU, (portTickType) 0);
+			}
 		}
 		vTaskDelay(xDelay);
 

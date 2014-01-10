@@ -545,6 +545,8 @@ void vREADTask2( void *pvParameters )
 				}
 				topicID=5;
 			}
+
+			if(count >= 24) RTPSsocketUnsubscribeByTID(&socket2, 1);
 		}
 		vTaskDelay(xDelay);
 

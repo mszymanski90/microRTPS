@@ -43,6 +43,7 @@ typedef struct sTopicBuffer
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE msg_length;
 	unsigned portBASE_TYPE subscribersCount;
+	unsigned portBASE_TYPE publishersCount;
 
 	tMsg messages;
 	unsigned portBASE_TYPE msgPendingActions[TPBUF_LENGTH];

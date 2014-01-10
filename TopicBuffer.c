@@ -36,6 +36,7 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, TPBUF_LENGTH);
 	pom->mutex = xSemaphoreCreateMutex();
 	pom->subscribersCount = 0;
+	pom->publishersCount = 0;
 	pom->msg_length = msg_length;
 
 	for(i=0; i<TPBUF_LENGTH; i++)

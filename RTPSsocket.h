@@ -72,8 +72,8 @@ unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned por
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID);
 
 /*
- * \brief Registers topic in database. Subscribe and publish can be done only with registered topics.
+ * \brief Increments publishers count. Makes sure TopicBuffer with matching topicID exists (creates one if necessary).
  */
-unsigned portBASE_TYPE RTPSsocketRegisterTopic(RTPSsocket* socket, unsigned portBASE_TYPE name);
+unsigned portBASE_TYPE RTPSsocketRegisterPublisherByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 
 #endif /* RTPSSOCKET_H_ */

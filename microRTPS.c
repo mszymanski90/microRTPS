@@ -100,7 +100,7 @@ unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned p
 	return 1;
 }
 
-unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
+unsigned portBASE_TYPE microRTPSAssertBufferExists(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
 {
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE tpbufID;
@@ -134,7 +134,8 @@ unsigned portBASE_TYPE microRTPSAssertTopicIsSubscribed(microRTPS* mRTPS, unsign
 
 	if(mRTPS->TopicBuffers[tpbufID] == NULL) return MAX_TOPICS; // error
 
-	mRTPS->TopicBuffers[tpbufID]->subscribersCount++;
+	// do that after this function
+	//mRTPS->TopicBuffers[tpbufID]->subscribersCount++;
 
 	return tpbufID;
 }

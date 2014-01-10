@@ -143,7 +143,8 @@ unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned por
 		}
 	}
 
-	tpbufID = microRTPSAssertTopicIsSubscribed(socket->mRTPS, topicID, msgLength);
+	tpbufID = microRTPSAssertBufferExists(socket->mRTPS, topicID, msgLength);
+	socket->mRTPS->TopicBuffers[tpbufID]->subscribersCount++;
 
 	if(tpbufID < MAX_TOPICS && space < MAX_TOPICS)
 	{
@@ -156,13 +157,26 @@ unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned por
 
 unsigned portBASE_TYPE RTPSsocketUnsubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID)
 {
-	// TODO: search for matching topicID in subscribedTopics
-	// TODO: insert 0 in place of found match
-	// TODO: decrement subscribers count in tpbuf
+	unsigned portBASE_TYPE i;
+
+	for(i=0; i<MAX_TOPICS; i++)
+	{
+		if(socket->subscribedTopics[i].topicID == topicID)
+		{
+			TB_DecrementSubsCount(socket->mRTPS->TopicBuffers[socket->subscribedTopics[i].tpbufID]);
+
+			socket->subscribedTopics[i].topicID = 0;
+			socket->subscribedTopics[i].tpbufID = MAX_TOPICS;
+		}
+	}
+
 }
 
-unsigned portBASE_TYPE RTPSsocketRegisterTopic(RTPSsocket* socket, unsigned portBASE_TYPE name)
+unsigned portBASE_TYPE RTPSsocketRegisterPublisherByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)
 {
+	unsigned portBASE_TYPE tpbufID;
 
+	tpbufID = microRTPSAssertBufferExists(socket->mRTPS, topicID, msgLength);
+	socket->mRTPS->TopicBuffers[tpbufID]->publishersCount++;
 }
 

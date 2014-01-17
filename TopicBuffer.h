@@ -24,6 +24,7 @@
 #define TOPICBUFFER_H_
 
 #include "microRTPS_config.h"
+#include "protocol.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -63,9 +64,12 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle);
 
 /*
- * \brief Reads from Topic Buffer
- *
- * last_read_index- index of last read message in buffer,
+ * \brief Reads frame from Topic Buffer
+ */
+void GetFrameFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index, tMsg* msgBuf);
+
+/*
+ * \brief Reads message from Topic Buffer
  */
 void GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index, tMsg* msgBuf);
 

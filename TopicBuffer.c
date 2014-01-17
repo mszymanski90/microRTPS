@@ -31,7 +31,7 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 	pom = (TopicBufferHandle) pvPortMalloc(sizeof(TopicBuffer));
 
 	pom->messages = NULL;
-	pom->messages = pvPortMalloc(TPBUF_LENGTH * msg_length);
+	pom->messages = pvPortMalloc(TPBUF_LENGTH * (sizeof(publish_frame_header) + msg_length));
 	pom->topicID = topicID;
 	pom->sem_space_left = xSemaphoreCreateCounting(TPBUF_LENGTH, TPBUF_LENGTH);
 	pom->mutex = xSemaphoreCreateMutex();
@@ -57,7 +57,7 @@ portBASE_TYPE DestroyTopicBuffer(TopicBufferHandle TBHandle)
 	return 0;
 }
 
-void GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index, tMsg* msgBuf)
+void GetFrameFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index, tMsg* msgBuf)
 {
 	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
 	{
@@ -65,7 +65,16 @@ void GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE ms
 
 		xSemaphoreGive(TBHandle->mutex);
 	}
-	// else error
+}
+
+void GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE msg_index, tMsg* msgBuf)
+{
+	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
+	{
+		*msgBuf = TBHandle->messages + msg_index* (sizeof(publish_frame_header) + TBHandle->msg_length) + sizeof(publish_frame_header);
+
+		xSemaphoreGive(TBHandle->mutex);
+	}
 }
 
 unsigned portBASE_TYPE GetMsgLengthFromTopicBuffer(TopicBufferHandle TBHandle)
@@ -127,7 +136,7 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 		{
 			if(TBHandle->msgPendingActions[i]<=0)
 			{
-				buffer_addr = (TBHandle->messages + i*(TBHandle->msg_length));
+				buffer_addr = (TBHandle->messages + i*(TBHandle->msg_length + sizeof(publish_frame_header)));
 
 				for(j=0; j<TBHandle->msg_length; j++)
 				{

@@ -70,10 +70,6 @@ void microRTPSRxTask(void *pvParameters)
 	data_frame* msgBuf;
 	unsigned portBASE_TYPE topicID;
 	int32_t frameLength;
-	unsigned portBASE_TYPE i;
-	unsigned portBASE_TYPE j;
-	unsigned portBASE_TYPE match;
-	unsigned portBASE_TYPE assignedTID;
 
 	mRTPS = (microRTPS*) pvParameters;
 
@@ -99,47 +95,7 @@ void microRTPSRxTask(void *pvParameters)
 						}
 						case FRAME_REGISTER:
 						{
-							if(mRTPS->isMaster)
-							{
-								if((msgBuf)->topicID == 0)
-								{
-									for(i=0; i<NAME_TABLE_LENGHT; i++)
-									{
-										if(!mRTPS->topicNameTable->empty)
-										{
-											match = 1;
-											for(j=0; j<MAX_TOPIC_NAME_LENGTH; j++)
-											{
-												if((msgBuf)->topicName[j] != mRTPS->topicNameTable->name[j])
-												{
-													match = 0;
-													j = MAX_TOPIC_NAME_LENGTH;
-												}
-											}
 
-											if(match == 1)
-											{
-												assignedTID = mRTPS->topicNameTable[i].topicID;
-											}
-										}
-									}
-
-									if(match == 0)
-									{
-										// TODO: assign new TID
-										for(i=0; i<NAME_TABLE_LENGTH; i++)
-										{
-											if(mRTPS->topicNameTable[i]->empty)
-											{
-												// found not assigned TID
-												assignedTID = mRTPS->topicNameTable[i].topicID;
-											}
-										}
-									}
-
-									// TODO: send reply
-								}
-							}
 						}
 						default:
 						{
@@ -171,6 +127,9 @@ void microRTPSTxTask(void *pvParameters)
 
 			msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID]);
 			GetMsgFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID, &msgBuf);
+
+			// TODO: put data into publish frame
+
 
 			lRTnetSendto(	mRTPS->RTnetSocket,
 							msgBuf,
@@ -271,6 +230,66 @@ void microRTPS_Register(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsign
 	}
 
 	mRTPS->TopicBuffers[i] = CreateTopicBuffer(topicID, msgLength);
+}
+
+void microRTPS_RegisterFrame(microRTPS* mRTPS, void* msgBuf)
+{
+	unsigned portBASE_TYPE i;
+	unsigned portBASE_TYPE j;
+	unsigned portBASE_TYPE match;
+	unsigned portBASE_TYPE assignedTID;
+	register_frame* preg_frame;
+	register_frame reg_frame;
+
+	preg_frame = (register_frame*) msgBuf;
+
+	if(mRTPS->isMaster)
+	{
+		if(preg_frame->topicID == 0)
+		{
+			for(i=0; i<NAME_TABLE_LENGHT; i++)
+			{
+				if(!mRTPS->topicNameTable->empty)
+				{
+					match = 1;
+					for(j=0; j<MAX_TOPIC_NAME_LENGTH; j++)
+					{
+						if(preg_frame->topicName[j] != mRTPS->topicNameTable->name[j])
+						{
+							match = 0;
+							j = MAX_TOPIC_NAME_LENGTH;
+						}
+					}
+
+					if(match == 1)
+					{
+						assignedTID = mRTPS->topicNameTable[i].topicID;
+					}
+				}
+			}
+
+			if(match == 0)
+			{
+				for(i=0; i<NAME_TABLE_LENGTH; i++)
+				{
+					if(mRTPS->topicNameTable[i]->empty)
+					{
+						// found not assigned TID
+						assignedTID = mRTPS->topicNameTable[i].topicID;
+					}
+				}
+			}
+
+			reg_frame.header =
+
+			lRTnetSendto(	mRTPS->RTnetSocket,
+										msgBuf,
+										(void *) &reg_frame,
+										0,
+										&(mRTPS->broadcastAddr),
+										0	);
+		}
+	}
 }
 
 unsigned portBASE_TYPE microRTPS_FindTpbufIndexByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID)

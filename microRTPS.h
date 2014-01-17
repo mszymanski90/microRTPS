@@ -77,6 +77,8 @@ unsigned portBASE_TYPE microRTPSAssertBufferExists(microRTPS* mRTPS, unsigned po
 
 void microRTPS_Register(microRTPS* mRTPS, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength);
 
+void microRTPS_RegisterFrame(microRTPS* mRTPS, void* msgBuf);
+
 /*
  * \brief Returns index of topicBuffer that contains corresponding topicID.
  */

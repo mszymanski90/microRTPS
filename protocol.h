@@ -44,9 +44,8 @@ struct spublish_frame
 {
 	header_t header;
 	uint32_t topicID;
-	uint32_t data;
 };
-typedef struct spublish_frame publish_frame;
+typedef struct spublish_frame publish_frame_header;
 
 struct sregister_frame
 {

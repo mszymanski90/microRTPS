@@ -73,6 +73,7 @@ void microRTPSRxTask(void *pvParameters)
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE j;
 	unsigned portBASE_TYPE match;
+	unsigned portBASE_TYPE assignedTID;
 
 	mRTPS = (microRTPS*) pvParameters;
 
@@ -102,7 +103,6 @@ void microRTPSRxTask(void *pvParameters)
 							{
 								if((msgBuf)->topicID == 0)
 								{
-									// TODO: search for TID, by topic name
 									for(i=0; i<NAME_TABLE_LENGHT; i++)
 									{
 										if(!mRTPS->topicNameTable->empty)
@@ -116,17 +116,27 @@ void microRTPSRxTask(void *pvParameters)
 													j = MAX_TOPIC_NAME_LENGTH;
 												}
 											}
+
+											if(match == 1)
+											{
+												assignedTID = mRTPS->topicNameTable[i].topicID;
+											}
 										}
 									}
 
-									// TODO: assign new TID
-									for(i=0; i<NAME_TABLE_LENGTH; i++)
+									if(match == 0)
 									{
-										if(mRTPS->topicNameTable->empty)
+										// TODO: assign new TID
+										for(i=0; i<NAME_TABLE_LENGTH; i++)
 										{
-											// found not assigned TID
+											if(mRTPS->topicNameTable[i]->empty)
+											{
+												// found not assigned TID
+												assignedTID = mRTPS->topicNameTable[i].topicID;
+											}
 										}
 									}
+
 									// TODO: send reply
 								}
 							}

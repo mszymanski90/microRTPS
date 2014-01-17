@@ -259,7 +259,7 @@ int main( void )
 {
 	prvSetupHardware();
 
-	microRTPS_Init(&mRTPS);
+	microRTPS_Init(&mRTPS, 1);
 	RTPSsocketInit(&socket1, &mRTPS);
 	RTPSsocketInit(&socket2, &mRTPS);
 

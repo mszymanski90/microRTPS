@@ -29,6 +29,7 @@
 #define PROTO_VERSION 0x0001
 
 #define FRAME_PUB 0x00
+#define FRAME_REGISTER 0x01
 
 struct sheader
 {
@@ -39,12 +40,21 @@ struct sheader
 };
 typedef struct header header_t;
 
-struct sdata_frame
+struct spublish_frame
 {
 	header_t header;
 	uint32_t topicID;
 	uint32_t data;
 };
-typedef struct sdata_frame data_frame;
+typedef struct spublish_frame publish_frame;
+
+struct sregister_frame
+{
+	header_t header;
+	uint32_t topicID;
+	uint8_t topicName[32];
+	uint32_t msgLength;
+};
+typedef struct sregister_frame register_frame;
 
 #endif /* PROTOCOL_H_ */

@@ -22,9 +22,29 @@
 
 #include "microRTPS.h"
 
-void microRTPS_Init(microRTPS* mRTPS)
+void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster)
 {
 	unsigned portBASE_TYPE i;
+	unsigned portBASE_TYPE j;
+
+	mRTPS->isMaster = isMaster;
+
+	if(mRTPS->isMaster)
+	{
+		mRTPS->topicNameTable = pvPortMalloc(NAME_TABLE_LENGTH * sizeof(TID_name));
+
+		for(i=0; i<NAME_TABLE_LENGTH; i++)
+		{
+			// all empty
+			mRTPS->topicNameTable->topicID = 0;
+			mRTPS->topicNameTable->empty = 1;
+
+			for(j=0; j<MAX_TOPIC_NAME_LENGTH; j++)
+			{
+				mRTPS->topicNameTable->name = 0;
+			}
+		}
+	}
 
 	for(i=0; i<MAX_TOPICS; i++)
 	{
@@ -34,7 +54,6 @@ void microRTPS_Init(microRTPS* mRTPS)
 	mRTPS->socketList = NULL;
 	MsgQueueInit(&mRTPS->txMsgQueue);
 
-	// TODO: correct max count ?
 	mRTPS->txSem = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
 
 	mRTPS->RTnetSocket = xRTnetSocket(RTNET_AF_INET, RTNET_SOCK_DGRAM, RTNET_IPPROTO_UDP);
@@ -51,6 +70,9 @@ void microRTPSRxTask(void *pvParameters)
 	data_frame* msgBuf;
 	unsigned portBASE_TYPE topicID;
 	int32_t frameLength;
+	unsigned portBASE_TYPE i;
+	unsigned portBASE_TYPE j;
+	unsigned portBASE_TYPE match;
 
 	mRTPS = (microRTPS*) pvParameters;
 
@@ -73,6 +95,41 @@ void microRTPSRxTask(void *pvParameters)
 							microRTPSWrite(mRTPS, &(msgBuf->data), (unsigned portBASE_TYPE) topicID, 0);
 							vRTnetReleaseUdpDataBuffer(msgBuf);
 							break;
+						}
+						case FRAME_REGISTER:
+						{
+							if(mRTPS->isMaster)
+							{
+								if((msgBuf)->topicID == 0)
+								{
+									// TODO: search for TID, by topic name
+									for(i=0; i<NAME_TABLE_LENGHT; i++)
+									{
+										if(!mRTPS->topicNameTable->empty)
+										{
+											match = 1;
+											for(j=0; j<MAX_TOPIC_NAME_LENGTH; j++)
+											{
+												if((msgBuf)->topicName[j] != mRTPS->topicNameTable->name[j])
+												{
+													match = 0;
+													j = MAX_TOPIC_NAME_LENGTH;
+												}
+											}
+										}
+									}
+
+									// TODO: assign new TID
+									for(i=0; i<NAME_TABLE_LENGTH; i++)
+									{
+										if(mRTPS->topicNameTable->empty)
+										{
+											// found not assigned TID
+										}
+									}
+									// TODO: send reply
+								}
+							}
 						}
 						default:
 						{
@@ -109,7 +166,7 @@ void microRTPSTxTask(void *pvParameters)
 							msgBuf,
 							msgLength,
 							0,
-							&broadcastAddr,
+							&(mRTPS->broadcastAddr),
 							0	);
 
 			MsgDoneReading(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);

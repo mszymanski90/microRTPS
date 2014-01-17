@@ -36,6 +36,12 @@
 #include "msgFIFO.h"
 #include "protocol.h"
 
+typedef struct sTID_name
+{
+	unsigned portCHAR name[MAX_TOPIC_NAME_LENGTH];
+	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE empty;
+} TID_name;
 
 typedef struct smicroRTPS
 {
@@ -46,12 +52,15 @@ typedef struct smicroRTPS
 
 	xRTnetSocket_t RTnetSocket;
 	xRTnetSockAddr_t broadcastAddr;
+
+	unsigned portBASE_TYPE isMaster;
+	TID_name* topicNameTable;
 } microRTPS;
 
 /*
  * \brief Initializes microRTPS structure.
  */
-void microRTPS_Init(microRTPS* mRTPS);
+void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster);
 
 void microRTPSRxTask(void *pvParameters);
 void microRTPSTxTask(void *pvParameters);

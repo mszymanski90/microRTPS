@@ -28,6 +28,8 @@
 // recommended minimum is 2
 #define TPBUF_LENGTH 1
 #define MAX_APPS 2
+#define NAME_TABLE_LENGTH 8
+#define MAX_TOPIC_NAME_LENGTH 32
 
 //
 #define MSG_QUEUE_LENGTH TPBUF_LENGTH*MAX_TOPICS

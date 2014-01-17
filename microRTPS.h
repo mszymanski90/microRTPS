@@ -40,7 +40,8 @@ typedef struct sTID_name
 {
 	unsigned portCHAR name[MAX_TOPIC_NAME_LENGTH];
 	unsigned portBASE_TYPE topicID;
-	unsigned portBASE_TYPE empty;
+	unsigned portBASE_TYPE msgLength;
+	unsigned portBASE_TYPE registered;
 } TID_name;
 
 typedef struct smicroRTPS
@@ -83,5 +84,7 @@ void microRTPS_RegisterFrame(microRTPS* mRTPS, void* msgBuf);
  * \brief Returns index of topicBuffer that contains corresponding topicID.
  */
 unsigned portBASE_TYPE microRTPS_FindTpbufIndexByTopicID(microRTPS* mRTPS, unsigned portBASE_TYPE topicID);
+
+void microRTPSCopyName(unsigned portCHAR* from, unsigned portCHAR* to);
 
 #endif /* MICRORTPS_H_ */

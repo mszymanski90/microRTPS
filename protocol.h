@@ -35,23 +35,29 @@ struct sheader
 {
 	uint16_t protocolID;
 	uint16_t version;
+	// length of frame including header
 	uint32_t length;
+	// either FRAME_PUB (publish_frame), or FRAME_REGISTER (register_frame)
 	uint8_t frameType;
 };
 typedef struct header header_t;
 
-struct spublish_frame
+struct spublish_frame_header
 {
 	header_t header;
+	// topicID, 0 is restricted value
 	uint32_t topicID;
 };
-typedef struct spublish_frame publish_frame_header;
+typedef struct spublish_frame_header publish_frame_header;
 
 struct sregister_frame
 {
 	header_t header;
+	// topicID, 0 is restricted value
 	uint32_t topicID;
+	// topic name, 32 ASCII characters
 	uint8_t topicName[32];
+	// length of message
 	uint32_t msgLength;
 };
 typedef struct sregister_frame register_frame;

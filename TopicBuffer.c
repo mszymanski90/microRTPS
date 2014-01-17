@@ -44,7 +44,7 @@ TopicBufferHandle CreateTopicBuffer(unsigned portBASE_TYPE topicID, unsigned por
 		pom->msgPendingActions[i] = 0;
 	}
 
-	if(pom->sem_space_left != NULL && pom->mutex && pom->messages != NULL) return pom;
+	if(pom->sem_space_left != NULL && pom->mutex != NULL && pom->messages != NULL) return pom;
 	else return NULL;
 }
 

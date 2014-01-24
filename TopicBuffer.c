@@ -61,7 +61,7 @@ void GetFrameFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE 
 {
 	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
 	{
-		*msgBuf = TBHandle->messages + msg_index*TBHandle->msg_length;
+		*msgBuf = TBHandle->messages + msg_index * (sizeof(publish_frame_header) + TBHandle->msg_length);
 
 		xSemaphoreGive(TBHandle->mutex);
 	}
@@ -71,7 +71,7 @@ void GetMsgFromTopicBuffer(TopicBufferHandle TBHandle, unsigned portBASE_TYPE ms
 {
 	if(xSemaphoreTake(TBHandle->mutex, portMAX_DELAY) == pdTRUE)
 	{
-		*msgBuf = TBHandle->messages + msg_index* (sizeof(publish_frame_header) + TBHandle->msg_length) + sizeof(publish_frame_header);
+		*msgBuf = TBHandle->messages + msg_index * (sizeof(publish_frame_header) + TBHandle->msg_length) + sizeof(publish_frame_header);
 
 		xSemaphoreGive(TBHandle->mutex);
 	}
@@ -136,7 +136,7 @@ unsigned portBASE_TYPE WriteTopicBuffer(TopicBufferHandle TBHandle, tMsg msg, un
 		{
 			if(TBHandle->msgPendingActions[i]<=0)
 			{
-				buffer_addr = (TBHandle->messages + i*(TBHandle->msg_length + sizeof(publish_frame_header)));
+				buffer_addr = (TBHandle->messages + i*(TBHandle->msg_length + sizeof(publish_frame_header)) + sizeof(publish_frame_header));
 
 				for(j=0; j<TBHandle->msg_length; j++)
 				{

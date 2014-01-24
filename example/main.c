@@ -146,6 +146,9 @@
 #include "microRTPS.h"
 #include "RTPSsocket.h"
 
+#include "msgStruct.h"
+#include "simulator.h"
+
 /*-----------------------------------------------------------*/
 
 /* The time between cycles of the 'check' functionality (defined within the
@@ -158,8 +161,10 @@ tick hook. */
 /* The OLED task uses the sprintf function so requires a little more stack too. */
 #define mainOLED_TASK_STACK_SIZE			( configMINIMAL_STACK_SIZE + 50 )
 
-#define mainWRITE_TASK_STACK_SIZE			( configMINIMAL_STACK_SIZE )
-#define mainREAD_TASK_STACK_SIZE			( configMINIMAL_STACK_SIZE )
+#define mainRX_TASK_STACK_SIZE				( configMINIMAL_STACK_SIZE + 120 )
+#define mainTX_TASK_STACK_SIZE				( configMINIMAL_STACK_SIZE + 50 )
+#define mainWRITE_TASK_STACK_SIZE			( configMINIMAL_STACK_SIZE + 50)
+#define mainREAD_TASK_STACK_SIZE			( configMINIMAL_STACK_SIZE + 50)
 
 /* Task priorities. */
 #define mainQUEUE_POLL_PRIORITY				( tskIDLE_PRIORITY + 2 )
@@ -205,17 +210,9 @@ extern void vuIP_Task( void *pvParameters );
  */
 static void vOLEDTask( void *pvParameters );
 
-/*
- * Task that writes to the queue
- */
-static void vWRITETask( void *pvParameters );
 
-/*
- * Task that reads from the queue
- */
-static void vREADTask1( void *pvParameters );
-
-static void vREADTask2( void *pvParameters );
+static void vSOCKET1Task( void *pvParameters );
+static void vSOCKET2Task( void *pvParameters );
 
 /*
  * Configure the hardware for the demo.
@@ -242,11 +239,7 @@ microRTPS mRTPS;
 RTPSsocket socket1;
 RTPSsocket socket2;
 
-typedef struct sMsg
-{
-	unsigned portBASE_TYPE num1;
-	signed portCHAR num2;
-} Msg;
+Simulator simulator;
 
 /* The welcome text. */
 const portCHAR * const pcWelcomeMessage = "   www.FreeRTOS.org";
@@ -259,7 +252,8 @@ int main( void )
 {
 	prvSetupHardware();
 
-	microRTPS_Init(&mRTPS, 1);
+	lSimInit(&simulator);
+	microRTPS_Init(&mRTPS, 1, &simulator);
 	RTPSsocketInit(&socket1, &mRTPS);
 	RTPSsocketInit(&socket2, &mRTPS);
 
@@ -292,9 +286,10 @@ int main( void )
 	/* Start the tasks defined within this file/specific to this demo. */
 	xTaskCreate( vOLEDTask, ( signed portCHAR * ) "OLED", mainOLED_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
-	xTaskCreate( vWRITETask, ( signed portCHAR * ) "WRITE", mainWRITE_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vREADTask1, ( signed portCHAR * ) "READ1", mainREAD_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
-	xTaskCreate( vREADTask2, ( signed portCHAR * ) "READ2", mainREAD_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( microRTPSRxTask, ( signed portCHAR * ) "RXTASK", mainRX_TASK_STACK_SIZE, (void *) &mRTPS, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( microRTPSTxTask, ( signed portCHAR * ) "TXTASK", mainTX_TASK_STACK_SIZE, (void *) &mRTPS, tskIDLE_PRIORITY, NULL );
+	xTaskCreate( vSOCKET1Task, ( signed portCHAR * ) "SOCKET1", mainREAD_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+	//xTaskCreate( vSOCKET2Task, ( signed portCHAR * ) "SOCKET2", mainWRITE_TASK_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
 	/* The suicide tasks must be created last as they need to know how many
 	tasks were running prior to their creation in order to ascertain whether
@@ -407,40 +402,10 @@ void vApplicationTickHook( void )
 }
 /*-----------------------------------------------------------*/
 
-void vWRITETask( void *pvParameters )
-{
-	xOLEDMessage xW;
-	Msg ms;
-	const portTickType xDelay = 2000 / portTICK_RATE_MS;
-	unsigned portBASE_TYPE count;
-
-	ms.num1 = 5;
-	ms.num2 = -3;
-
-	count = 0;
-
-	sprintf(xW.msg, "WRITE    ");
-
-	vTaskDelay(xDelay);
-
-	for(;;)
-	{
-
-		if(microRTPSWrite(&mRTPS, (void *) &ms, 1, 0))
-		{
-			xW.msg[6] = ((count/10) % 10) +48;
-			xW.msg[7] = (count % 10) +48;
-			count++;
-			xQueueSendToBack(xOLEDQueue, &xW, (portTickType) 0);
-		}
-	}
-}
-/*-----------------------------------------------------------*/
-
-void vREADTask1( void *pvParameters )
+void vSOCKET1Task( void *pvParameters )
 {
 	const portTickType xDelay = 2000 / portTICK_RATE_MS;
-	Msg* buffer;
+	Msg1* buffer;
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE count;
 	unsigned portBASE_TYPE countr;
@@ -457,7 +422,7 @@ void vREADTask1( void *pvParameters )
 	sprintf(xR.msg, "RECV1    ");
 	sprintf(xr.msg, "recv1    ");
 
-	if(RTPSsocketSubscribeByTID(&socket1, 1, sizeof(Msg)))
+	if(RTPSsocketSubscribeByTID(&socket1, 1, sizeof(Msg1)))
 	{
 		xQueueSendToBack(xOLEDQueue, &xS, (portTickType) 0);
 	}
@@ -470,13 +435,13 @@ void vREADTask1( void *pvParameters )
 			xr.msg[7] = (countr % 10) +48;
 			countr++;
 
-			//xQueueSendToBack(xOLEDQueue, &xr, (portTickType) 0);
+			xQueueSendToBack(xOLEDQueue, &xr, (portTickType) 0);
 
 			if(topicID == 1)
 			{
 				if(buffer != NULL)
 				{
-					if(buffer->num1 == 5 && buffer->num2 == -3)
+					if(buffer->num1 == 5 && buffer->num2 == 13)
 					{
 						xR.msg[6] = ((count/10) % 10) +48;
 						xR.msg[7] = (count % 10) +48;
@@ -489,37 +454,44 @@ void vREADTask1( void *pvParameters )
 				topicID=5;
 			}
 		}
-		vTaskDelay(xDelay);
 
 	}
 }
 
-void vREADTask2( void *pvParameters )
+void vSOCKET2Task( void *pvParameters )
 {
-	const portTickType xDelay = 2000 / portTICK_RATE_MS;
-	Msg* buffer;
+	const portTickType xDelay = 1000 / portTICK_RATE_MS;
+	Msg2* buffer;
+	Msg1 pub_msg;
 	unsigned portBASE_TYPE topicID;
 	unsigned portBASE_TYPE count;
 	unsigned portBASE_TYPE countr;
 	xOLEDMessage xS;
 	xOLEDMessage xU;
 	xOLEDMessage xR;
-	//xOLEDMessage xr;
+	xOLEDMessage xW;
+	xOLEDMessage xr;
+
+	pub_msg.num1 = 5;
+	pub_msg.num2 = 13;
 
 	buffer = NULL;
 	topicID = 1;
 	count = 0;
 	countr = 0;
 
-	sprintf(xS.msg, "SUB2");
-	sprintf(xU.msg, "UNSUB2");
+	sprintf(xS.msg, "SUB2     ");
+	sprintf(xU.msg, "UNSUB2   ");
 	sprintf(xR.msg, "RECV2    ");
-	//sprintf(xr.msg, "recv2    ");
+	sprintf(xr.msg, "recv2    ");
+	sprintf(xW.msg, "WRITE    ");
 
-	if(RTPSsocketSubscribeByTID(&socket2, 1, sizeof(Msg)))
+
+	if(RTPSsocketSubscribeByTID(&socket2, 2, sizeof(Msg2)))
 	{
 		xQueueSendToBack(xOLEDQueue, &xS, (portTickType) 0);
 	}
+
 
 	for(;;)
 	{
@@ -535,7 +507,7 @@ void vREADTask2( void *pvParameters )
 			{
 				if(buffer != NULL)
 				{
-					if(buffer->num1 == 5 && buffer->num2 == -3)
+					if(buffer->num1 == 7 && buffer->num2 == 13 && buffer->num3 == 4)
 					{
 						xR.msg[6] = ((count/10) % 10) +48;
 						xR.msg[7] = (count % 10) +48;
@@ -547,14 +519,10 @@ void vREADTask2( void *pvParameters )
 				}
 				topicID=5;
 			}
-
-			if(count >= 24)
-			{
-				RTPSsocketUnsubscribeByTID(&socket2, 1);
-				xQueueSendToBack(xOLEDQueue, &xU, (portTickType) 0);
-			}
 		}
 		vTaskDelay(xDelay);
+
+		RTPSsocketPublish(&socket2, &pub_msg, 1);
 
 	}
 }

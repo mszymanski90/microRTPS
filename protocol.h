@@ -40,7 +40,7 @@ struct sheader
 	// either FRAME_PUB (publish_frame), or FRAME_REGISTER (register_frame)
 	uint8_t frameType;
 };
-typedef struct header header_t;
+typedef struct sheader header_t;
 
 struct spublish_frame_header
 {

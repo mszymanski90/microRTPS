@@ -22,12 +22,13 @@
 
 #include "microRTPS.h"
 
-void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster)
+void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster, Simulator* sim)
 {
 	unsigned portBASE_TYPE i;
 	unsigned portBASE_TYPE j;
 
 	mRTPS->isMaster = isMaster;
+	mRTPS->sim = sim;
 
 	if(mRTPS->isMaster)
 	{
@@ -42,7 +43,7 @@ void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster)
 
 			for(j=0; j<MAX_TOPIC_NAME_LENGTH; j++)
 			{
-				mRTPS->topicNameTable->name = 0;
+				mRTPS->topicNameTable->name[j] = 0;
 			}
 		}
 	}
@@ -57,18 +58,20 @@ void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster)
 
 	mRTPS->txSem = xSemaphoreCreateCounting(TPBUF_LENGTH, 0);
 
-	mRTPS->RTnetSocket = xRTnetSocket(RTNET_AF_INET, RTNET_SOCK_DGRAM, RTNET_IPPROTO_UDP);
+	//mRTPS->RTnetSocket = xRTnetSocket(RTNET_AF_INET, RTNET_SOCK_DGRAM, RTNET_IPPROTO_UDP);
 	// TODO: make broadcast address a parameter
 	mRTPS->broadcastAddr.sin_addr = RTNET_IP_BROADCAST;
 	// TODO: make port a parameter
 	mRTPS->broadcastAddr.sin_port = RTNET_IPPROTO_UDP;
-	xRTnetBind(mRTPS->RTnetSocket, &(mRTPS->broadcastAddr), 0);
+	//xRTnetBind(mRTPS->RTnetSocket, &(mRTPS->broadcastAddr), 0);
 }
 
 void microRTPSRxTask(void *pvParameters)
 {
 	microRTPS* mRTPS;
-	data_frame* msgBuf;
+	void* msgBuf;
+	header_t* pFrameHeader;
+	publish_frame_header* ppub_header;
 	unsigned portBASE_TYPE topicID;
 	int32_t frameLength;
 
@@ -76,22 +79,23 @@ void microRTPSRxTask(void *pvParameters)
 
 	while(1)
 	{
-		frameLength = lRTnetRecvfrom(mRTPS->RTnetSocket,
-		                       	   	   &msgBuf,
-		                       	   	   size_t            xLen,
-		                       	   	   RTNET_ZERO_COPY,
-		                       	   	   NULL,
-		                       	   	   NULL);
+		frameLength = lSimRecvfrom(mRTPS->sim, (void**) &msgBuf, MAX_BUFFER_SIZE, RTNET_ZERO_COPY );
 
-		if(msgBuf->header->protocolID == PROTO_ID) // protocol OK
-			if(msgBuf->header->version == PROTO_VERSION) // version OK
+		pFrameHeader = (header_t*) msgBuf;
+		if(pFrameHeader->protocolID == PROTO_ID) // protocol OK
+			if(pFrameHeader->version == PROTO_VERSION) // version OK
 				{
-					switch(msgBuf->header->frameType)
+					switch(pFrameHeader->frameType)
 					{
 						case FRAME_PUB:
 						{
-							microRTPSWrite(mRTPS, &(msgBuf->data), (unsigned portBASE_TYPE) topicID, 0);
-							vRTnetReleaseUdpDataBuffer(msgBuf);
+							ppub_header = (publish_frame_header*) msgBuf;
+							topicID = ppub_header->topicID;
+							microRTPSWrite(mRTPS,
+									(msgBuf+sizeof(publish_frame_header)),
+									(unsigned portBASE_TYPE) topicID,
+									0);
+							vSimReleaseUdpDataBuffer(mRTPS->sim, msgBuf);
 							break;
 						}
 						case FRAME_REGISTER:
@@ -112,11 +116,12 @@ void microRTPSRxTask(void *pvParameters)
 void microRTPSTxTask(void *pvParameters)
 {
 	microRTPS* mRTPS;
-	MsgAddress msgAddr;
 	void* msgBuf;
+	publish_frame_header* ppub_header;
 
 	unsigned portBASE_TYPE msgLength;
 	unsigned portBASE_TYPE topicID;
+	unsigned portBASE_TYPE tpbufID;
 	unsigned portBASE_TYPE msgID;
 
 	mRTPS = (microRTPS*) pvParameters;
@@ -125,25 +130,27 @@ void microRTPSTxTask(void *pvParameters)
 	{
 		if(xSemaphoreTake(mRTPS->txSem, portMAX_DELAY) == pdTRUE)
 		{
-			MsgQueueRead(&mRTPS->txMsgQueue, &topicID, &msgID);
+			MsgQueueRead(&mRTPS->txMsgQueue, &tpbufID, &msgID);
 
-			msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID]);
-			GetFrameFromTopicBuffer(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID, &msgBuf);
+			topicID = GetTopicIDFromTopicBuffer(mRTPS->TopicBuffers[tpbufID]);
+			msgLength = GetMsgLengthFromTopicBuffer(mRTPS->TopicBuffers[tpbufID]);
+			GetFrameFromTopicBuffer(mRTPS->TopicBuffers[tpbufID], msgID, &msgBuf);
 
-			((publish_frame_header *) msgBuf)->header->protocolID = PROTO_ID;
-			((publish_frame_header *) msgBuf)->header->version = PROTO_VERSION;
-			((publish_frame_header *) msgBuf)->header->length = msgLength;
-			((publish_frame_header *) msgBuf)->header->frameType = FRAME_PUB;
-			((publish_frame_header *) msgBuf)->topicID = topicID;
+			ppub_header = (publish_frame_header *) msgBuf;
 
-			lRTnetSendto(	mRTPS->RTnetSocket,
-							msgBuf,
-							msgLength,
-							0,
-							&(mRTPS->broadcastAddr),
-							0	);
+			ppub_header->header.protocolID = PROTO_ID;
+			ppub_header->header.version = PROTO_VERSION;
+			ppub_header->header.length = msgLength;
+			ppub_header->header.frameType = FRAME_PUB;
+			ppub_header->topicID = topicID;
 
-			MsgDoneReading(mRTPS->TopicBuffers[msgAddr.tpbufID], msgAddr.msgID);
+
+			if(!lSimSendto(mRTPS->sim, msgBuf, sizeof(publish_frame_header)+msgLength, 0, &mRTPS->broadcastAddr))
+			{
+				while(1){;}
+			}
+
+			MsgDoneReading(mRTPS->TopicBuffers[tpbufID], msgID);
 		}
 	}
 }
@@ -177,6 +184,7 @@ unsigned portBASE_TYPE microRTPSWrite(microRTPS* mRTPS, void* msgBuf, unsigned p
 	if(forTx)
 	{
 		MsgQueueWrite(&mRTPS->txMsgQueue, tpbufID, msgID);
+		xSemaphoreGive(mRTPS->txSem);
 	}
 
 	return 1;
@@ -254,12 +262,12 @@ void microRTPS_RegisterFrame(microRTPS* mRTPS, void* msgBuf)
 		{
 			for(i=0; i<NAME_TABLE_LENGTH; i++)
 			{
-				if(mRTPS->topicNameTable[i]->registered)
+				if(mRTPS->topicNameTable[i].registered)
 				{
 					match = 1;
 					for(j=0; j<MAX_TOPIC_NAME_LENGTH; j++)
 					{
-						if(preg_frame->topicName[j] != mRTPS->topicNameTable[i]->name[j])
+						if(preg_frame->topicName[j] != mRTPS->topicNameTable[i].name[j])
 						{
 							match = 0;
 							j = MAX_TOPIC_NAME_LENGTH;
@@ -269,7 +277,7 @@ void microRTPS_RegisterFrame(microRTPS* mRTPS, void* msgBuf)
 					if(match == 1)
 					{
 						assigned = i;
-						mRTPS->topicNameTable[i]->registered++;
+						mRTPS->topicNameTable[i].registered++;
 					}
 				}
 			}
@@ -278,12 +286,12 @@ void microRTPS_RegisterFrame(microRTPS* mRTPS, void* msgBuf)
 			{
 				for(i=0; i<NAME_TABLE_LENGTH; i++)
 				{
-					if(mRTPS->topicNameTable[i]->registered)
+					if(mRTPS->topicNameTable[i].registered)
 					{
 						assigned = i;
-						mRTPS->topicNameTable[i]->registered = 1;
-						mRTPS->topicNameTable[i]->topicID = preg_frame->topicID;
-						mRTPS->topicNameTable[i]->msgLength = preg_frame->msgLength;
+						mRTPS->topicNameTable[i].registered = 1;
+						mRTPS->topicNameTable[i].topicID = preg_frame->topicID;
+						mRTPS->topicNameTable[i].msgLength = preg_frame->msgLength;
 						microRTPSCopyName(preg_frame , &(mRTPS->topicNameTable[i]));
 						break;
 					}
@@ -299,12 +307,7 @@ void microRTPS_RegisterFrame(microRTPS* mRTPS, void* msgBuf)
 			microRTPSCopyName(preg_frame , &(reg_frame.topicName));
 
 			// TODO: send only to master
-			lRTnetSendto(	mRTPS->RTnetSocket,
-										msgBuf,
-										(void *) &reg_frame,
-										0,
-										&(mRTPS->broadcastAddr),
-										0	);
+			lSimSendto(mRTPS->sim, &reg_frame, sizeof(reg_frame), 0, &mRTPS->broadcastAddr);
 		}
 	}
 }

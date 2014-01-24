@@ -121,7 +121,7 @@ unsigned portBASE_TYPE RTPSsocketReceive(RTPSsocket* socket, void** msgBuf, unsi
 
 unsigned portBASE_TYPE RTPSsocketPublish(RTPSsocket* socket, void* msgBuf, unsigned portBASE_TYPE topicID)
 {
-	microRTPSWrite(socket->mRTPS, msgBuf, topicID, 1);
+	return microRTPSWrite(socket->mRTPS, msgBuf, topicID, 1);
 }
 
 unsigned portBASE_TYPE RTPSsocketSubscribeByTID(RTPSsocket* socket, unsigned portBASE_TYPE topicID, unsigned portBASE_TYPE msgLength)

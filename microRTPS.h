@@ -28,13 +28,15 @@
 #include "queue.h"
 #include "semphr.h"
 
-#include "rtnet.h"
-
 #include "microRTPS_config.h"
 #include "TopicBuffer.h"
 #include "socketList.h"
 #include "msgFIFO.h"
 #include "protocol.h"
+
+#include "simulator.h"
+
+#define MAX_BUFFER_SIZE 512
 
 typedef struct sTID_name
 {
@@ -51,17 +53,18 @@ typedef struct smicroRTPS
 	MsgQueue txMsgQueue;
 	xSemaphoreHandle txSem;
 
-	xRTnetSocket_t RTnetSocket;
 	xRTnetSockAddr_t broadcastAddr;
 
 	unsigned portBASE_TYPE isMaster;
 	TID_name* topicNameTable;
+
+	Simulator* sim;
 } microRTPS;
 
 /*
  * \brief Initializes microRTPS structure.
  */
-void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster);
+void microRTPS_Init(microRTPS* mRTPS, unsigned portBASE_TYPE isMaster, Simulator* sim);
 
 void microRTPSRxTask(void *pvParameters);
 void microRTPSTxTask(void *pvParameters);
